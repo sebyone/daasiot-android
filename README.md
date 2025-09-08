@@ -47,6 +47,7 @@ app/src/main/jniLibs/
 ```
 
 ### 4. Verify the CMakeLists.txt
+Make sure your CMakeLists.txt is correctly configured to link the DaaS static library:
 
 ```cmake
 cmake_minimum_required(VERSION 3.22.1)
