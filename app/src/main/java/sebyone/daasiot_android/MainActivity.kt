@@ -1,33 +1,35 @@
 package sebyone.daasiot_android
 
-import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import sebyone.daasiot_android.databinding.ActivityMainBinding
+import android.os.Bundle
+import android.util.Log
+import android.widget.TextView
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
+    private var daasPtr: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        // Create the native DaasAPI instance
+        daasPtr = DaasWrapper.create()
 
-        // Example of a call to a native method
-        binding.sampleText.text = stringFromJNI()
+        // Call into native methods
+        val version = DaasWrapper.getVersion(daasPtr)
+        val drivers = DaasWrapper.listAvailableDrivers(daasPtr)
+
+        // Debug logs
+        Log.d("DaaS", "Version: $version")
+        Log.d("DaaS", "Drivers: $drivers")
+
+        // Update UI
+        findViewById<TextView>(R.id.textView).text = "Version: $version\nDrivers: $drivers"
     }
 
-    /**
-     * A native method that is implemented by the 'daasiot_android' native library,
-     * which is packaged with this application.
-     */
-    external fun stringFromJNI(): String
-
-    companion object {
-        // Used to load the 'daasiot_android' library on application startup.
-        init {
-            System.loadLibrary("daasiot_android")
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        DaasWrapper.destroy(daasPtr)
     }
 }
