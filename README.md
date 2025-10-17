@@ -5,7 +5,7 @@ This document summarizes the work completed, current results, and next objective
 ## **Project Structure**
 
 ```bash
-app/
+daasiotsdk/
 ├── src/
 │   └── main/
 │       ├── cpp/                # Native C++ source files
@@ -123,7 +123,7 @@ cd Daasiot-android
 
 Ensure the prebuilt static libraries are correctly placed:
 ```bash
-app/src/main/jniLibs/
+daasiotsdk/src/main/jniLibs/
     ├── armeabi-v7a/libdaas.a
     ├── arm64-v8a/libdaas.a
     └── x86_64/libdaas.a
@@ -148,4 +148,4 @@ If everything is set up correctly, the app will launch and display the following
 
 Below is a screenshot of the app running successfully, showing the DaaS version and available drivers:
 
-![Daasiot Android App](app/src/main/res/drawable/Screenshot_20250917_122726.png)
+![Daasiot Android App](daasiotsdk/src/main/res/drawable/Screenshot_20250917_122726.png)

@@ -201,6 +201,7 @@ typedef enum : unsigned // Supported communications technologies
     _LINK_BT, // Bluetooth
     _LINK_MQTT5,    // MQTT
     _LINK_UART,     // Serial line
+    _LINK_RAW
 } link_t;
 
 typedef enum
