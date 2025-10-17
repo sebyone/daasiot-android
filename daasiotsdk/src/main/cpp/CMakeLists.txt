@@ -43,6 +43,7 @@ message(STATUS "Using libdaas.a from: ${DAAS_LIB_PATH}")
 # ----------------------------
 add_library(${LIB_NAME} SHARED
         daas_jni.cpp
+        daas_wrapper.cpp
 )
 
 # ----------------------------
