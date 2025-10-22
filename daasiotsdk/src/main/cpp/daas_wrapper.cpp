@@ -12,16 +12,16 @@ DaasWrapper::~DaasWrapper() {
 }
 
 /* Lifecycle */
-int DaasWrapper::initCore(int sid, int din) {
+int DaasWrapper::doInit(int sid, int din) {
     return static_cast<int>(daas_.doInit(static_cast<din_t>(sid), static_cast<din_t>(din)));
 }
-int DaasWrapper::endCore() {
+int DaasWrapper::doEnd() {
     return static_cast<int>(daas_.doEnd());
 }
-int DaasWrapper::resetCore() {
+int DaasWrapper::doReset() {
     return static_cast<int>(daas_.doReset());
 }
-int DaasWrapper::performCore(int mode) {
+int DaasWrapper::doPerform(int mode) {
     return static_cast<int>(daas_.doPerform(static_cast<performs_mode_t>(mode)));
 }
 

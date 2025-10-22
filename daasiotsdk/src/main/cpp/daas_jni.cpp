@@ -90,43 +90,43 @@ return env->NewStringUTF(s.c_str());
 // Core / lifecycle ops (return int error codes)
 // -------------------------
 JNIEXPORT jint JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeInitCore(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint sid, jint din) {
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeDoInit(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint sid, jint din) {
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
-throwJavaException(env, "nativeInitCore: null wrapper");
+throwJavaException(env, "nativeDoInit: null wrapper");
 return -1;
 }
-return static_cast<jint>(wrapper->initCore(static_cast<int>(sid), static_cast<int>(din)));
+return static_cast<jint>(wrapper->doInit(static_cast<int>(sid), static_cast<int>(din)));
 }
 
 JNIEXPORT jint JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeEndCore(JNIEnv* env, jobject /*thiz*/, jlong ptr) {
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeDoEnd(JNIEnv* env, jobject /*thiz*/, jlong ptr) {
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
-throwJavaException(env, "nativeEndCore: null wrapper");
+throwJavaException(env, "nativeDoEnd: null wrapper");
 return -1;
 }
-return static_cast<jint>(wrapper->endCore());
+return static_cast<jint>(wrapper->doEnd());
 }
 
 JNIEXPORT jint JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeResetCore(JNIEnv* env, jobject /*thiz*/, jlong ptr) {
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeDoReset(JNIEnv* env, jobject /*thiz*/, jlong ptr) {
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
-throwJavaException(env, "nativeResetCore: null wrapper");
+throwJavaException(env, "nativeDoReset: null wrapper");
 return -1;
 }
-return static_cast<jint>(wrapper->resetCore());
+return static_cast<jint>(wrapper->doReset());
 }
 
 JNIEXPORT jint JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativePerformCore(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint mode) {
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeDoPerform(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint mode) {
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
-throwJavaException(env, "nativePerformCore: null wrapper");
+throwJavaException(env, "nativeDoPerform: null wrapper");
 return -1;
 }
-return static_cast<jint>(wrapper->performCore(static_cast<int>(mode)));
+return static_cast<jint>(wrapper->doPerform(static_cast<int>(mode)));
 }
 
 // -------------------------

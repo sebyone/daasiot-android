@@ -14,10 +14,10 @@ public:
     // --- Lifecycle ---
     // Returns pointer handle as jlong on JNI side (we'll return pointer to wrapper instance itself there)
     // Core operations (return daas_error_t as int)
-    int initCore(int sid, int din);
-    int endCore();
-    int resetCore();
-    int performCore(int mode);
+    int doInit(int sid, int din);
+    int doEnd();
+    int doReset();
+    int doPerform(int mode);
 
     // --- Info / strings ---
     std::string getVersion();

@@ -20,7 +20,7 @@ object DaasWrapper {
     private external fun nativeDoPerform(ptr: Long, mode: Int): Int
 
     private external fun nativeEnableDriver(ptr: Long, driverId: Int, localUri: String): Int
-    private external fun nativeGetStatus(ptr: Long): Long // returns a pointer to nodestate_t
+    private external fun nativeGetStatusCopy(ptr: Long): Long // returns a pointer to nodestate_t
 
     private external fun nativeStoreConfiguration(ptr: Long, depotPtr: Long): Boolean
     private external fun nativeLoadConfiguration(ptr: Long, depotPtr: Long): Boolean
@@ -75,7 +75,7 @@ object DaasWrapper {
     fun doPerform(ptr: Long, mode: Int): Int = nativeDoPerform(ptr, mode)
 
     fun enableDriver(ptr: Long, driverId: Int, localUri: String): Int = nativeEnableDriver(ptr, driverId, localUri)
-    fun getStatus(ptr: Long): Long = nativeGetStatus(ptr)
+    fun getStatus(ptr: Long): Long = nativeGetStatusCopy(ptr)
 
     fun storeConfiguration(ptr: Long, depotPtr: Long): Boolean = nativeStoreConfiguration(ptr, depotPtr)
     fun loadConfiguration(ptr: Long, depotPtr: Long): Boolean = nativeLoadConfiguration(ptr, depotPtr)
