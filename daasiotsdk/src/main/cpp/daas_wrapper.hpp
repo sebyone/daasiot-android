@@ -51,7 +51,8 @@ public:
     // fetch: returns pointer copy and int status
     nodestate_t* fetchCopy(din_t din, uint16_t opts, int &outErr);
 
-    int setATSMaxError(int32_t error);
+//    TODO: wait for the library implementation
+    /*bool setATSMaxError(int32_t error);*/
 
     // Real-time session
     bool use(din_t din);
@@ -67,11 +68,19 @@ public:
     int availablesPull(din_t din, uint32_t &count);
     int addTypeset(uint16_t typeset_code, uint16_t typeset_size);
 
+    // --- Security ---
+/*    nodestate_t* unlock(din_t din, const char* skey, int& outErr);
+    nodestate_t* lock(const char* skey, unsigned policy_, int& outErr);*/
+
+    // --- Synchronization ---
+    nodestate_t* syncNode(din_t din, unsigned timezone, int& outErr);
+    nodestate_t* syncNet(din_t din, unsigned bubble_time, int& outErr);
+
     // --- Test / frisbee ---
     int frisbee(din_t din);
-    int frisbee_icmp(din_t din, uint32_t timeout, uint32_t retry);
-    int frisbee_dperf(din_t din, uint32_t sender_pkt_total, uint32_t block_size, uint32_t sender_trip_period);
-    dperf_info_result get_frisbee_dperf_result();
+//    int frisbee_icmp(din_t din, uint32_t timeout, uint32_t retry);
+//    int frisbee_dperf(din_t din, uint32_t sender_pkt_total, uint32_t block_size, uint32_t sender_trip_period);
+//    dperf_info_result get_frisbee_dperf_result();
 
     // --- utility to free returned pointers ---
     static void freeNodeState(nodestate_t* ptr);

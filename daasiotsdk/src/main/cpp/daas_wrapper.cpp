@@ -110,10 +110,10 @@ nodestate_t* DaasWrapper::fetchCopy(din_t din, uint16_t opts, int &outErr) {
     return copy;
 }
 
-int DaasWrapper::setATSMaxError(int32_t error) {
+/*int DaasWrapper::setATSMaxError(int32_t error) {
     daas_.setATSMaxError(error);
     return 0;
-}
+}*/
 
 /* Real-time session */
 bool DaasWrapper::use(din_t din) {
@@ -165,11 +165,37 @@ int DaasWrapper::addTypeset(uint16_t typeset_code, uint16_t typeset_size) {
     return static_cast<int>(daas_.addTypeset(typeset_code, typeset_size));
 }
 
+/*nodestate_t* DaasWrapper::unlock(din_t din, const char* skey, int& outErr) {
+    const nodestate_t& ns = daas_.unlock(din, skey);
+    outErr = static_cast<int>(ERROR_NONE);
+    return new nodestate_t(ns);
+}
+
+nodestate_t* DaasWrapper::lock(const char* skey, unsigned policy_, int& outErr) {
+    const nodestate_t& ns = daas_.lock(skey, policy_);
+    outErr = static_cast<int>(ERROR_NONE);
+    return new nodestate_t(ns);
+}*/
+
+/* Sync */
+
+nodestate_t* DaasWrapper::syncNode(din_t din, unsigned timezone, int& outErr) {
+    const nodestate_t& ns = daas_.syncNode(din, timezone);
+    outErr = static_cast<int>(ERROR_NONE);
+    return new nodestate_t(ns);
+}
+
+nodestate_t* DaasWrapper::syncNet(din_t din, unsigned bubble_time, int& outErr) {
+    const nodestate_t& ns = daas_.syncNet(din, bubble_time);
+    outErr = static_cast<int>(ERROR_NONE);
+    return new nodestate_t(ns);
+}
+
 /* Frisbee / test */
 int DaasWrapper::frisbee(din_t din) {
     return static_cast<int>(daas_.frisbee(din));
 }
-int DaasWrapper::frisbee_icmp(din_t din, uint32_t timeout, uint32_t retry) {
+/*int DaasWrapper::frisbee_icmp(din_t din, uint32_t timeout, uint32_t retry) {
     return static_cast<int>(daas_.frisbee_icmp(din, timeout, retry));
 }
 int DaasWrapper::frisbee_dperf(din_t din, uint32_t sender_pkt_total, uint32_t block_size, uint32_t sender_trip_period) {
@@ -177,7 +203,7 @@ int DaasWrapper::frisbee_dperf(din_t din, uint32_t sender_pkt_total, uint32_t bl
 }
 dperf_info_result DaasWrapper::get_frisbee_dperf_result() {
     return daas_.get_frisbee_dperf_result();
-}
+}*/
 
 /* Free helpers */
 void DaasWrapper::freeNodeState(nodestate_t* ptr) {

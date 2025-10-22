@@ -320,18 +320,18 @@ nodestate_t* st = wrapper->fetchCopy(static_cast<din_t>(din), static_cast<uint16
 return reinterpret_cast<jlong>(st);
 }
 
-//JNIEXPORT jint JNICALL
-//        Java_sebyone_daasiot_1android_DaasWrapper_nativeSetATSMaxError(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint error) {
-//auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
-//if (!wrapper) {
-//throwJavaException(env, "nativeSetATSMaxError: null wrapper");
-//return -1;
-//}
-//return static_cast<jint>(wrapper->setATSMaxError(static_cast<int32_t>(error)));
-//}
+/*JNIEXPORT jint JNICALL
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeSetATSMaxError(JNIEnv* env, jobject thiz, jlong ptr, jint error) {
+auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
+if (!wrapper) {
+throwJavaException(env, "nativeSetATSMaxError: null wrapper");
+return -1;
+}
+return static_cast<jint>(wrapper->setATSMaxError(static_cast<int32_t>(error)));
+}*/
 
 JNIEXPORT jboolean JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeUseSession(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din) {
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeUse(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din) {
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
 throwJavaException(env, "nativeUseSession: null wrapper");
@@ -342,7 +342,7 @@ return ok ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT jboolean JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeEndSession(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din) {
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeEnd(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din) {
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
 throwJavaException(env, "nativeEndSession: null wrapper");
@@ -495,6 +495,91 @@ return static_cast<jint>(wrapper->addTypeset(static_cast<uint16_t>(typeset_code)
 }
 
 // -------------------------
+// Security
+// -------------------------
+
+/*JNIEXPORT jlong JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeUnlock(JNIEnv* env, jobject *//*thiz*//*, jlong ptr, jint din, jstring skey) {
+    auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
+    if (!wrapper) {
+        throwJavaException(env, "nativeUnlock: null wrapper");
+        return 0;
+    }
+
+    const char* c_skey = env->GetStringUTFChars(skey, nullptr);
+    int err = 0;
+    nodestate_t* result = wrapper->unlock(static_cast<din_t>(din), c_skey, err);
+    env->ReleaseStringUTFChars(skey, c_skey);
+
+    if (err != 0) {
+        throwJavaException(env, "nativeUnlock: failed");
+        return 0;
+    }
+
+    return reinterpret_cast<jlong>(result);
+}
+
+JNIEXPORT jlong JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeLock(JNIEnv* env, jobject *//*thiz*//*, jlong ptr, jstring skey, jint policy) {
+    auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
+    if (!wrapper) {
+        throwJavaException(env, "nativeLock: null wrapper");
+        return 0;
+    }
+
+    const char* c_skey = env->GetStringUTFChars(skey, nullptr);
+    int err = 0;
+    nodestate_t* result = wrapper->lock(c_skey, static_cast<unsigned>(policy), err);
+    env->ReleaseStringUTFChars(skey, c_skey);
+
+    if (err != 0) {
+        throwJavaException(env, "nativeLock: failed");
+        return 0;
+    }
+
+    return reinterpret_cast<jlong>(result);
+}*/
+
+// -------------------------
+// Sync
+// -------------------------
+JNIEXPORT jlong JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeSyncNode(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din, jint timezone) {
+    auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
+    if (!wrapper) {
+        throwJavaException(env, "nativeSyncNode: null wrapper");
+        return 0;
+    }
+
+    int err = 0;
+    nodestate_t* result = wrapper->syncNode(static_cast<din_t>(din), static_cast<unsigned>(timezone), err);
+    if (err != 0) {
+        throwJavaException(env, "nativeSyncNode: failed");
+        return 0;
+    }
+
+    return reinterpret_cast<jlong>(result);
+}
+
+JNIEXPORT jlong JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeSyncNet(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din, jint bubbleTime) {
+    auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
+    if (!wrapper) {
+        throwJavaException(env, "nativeSyncNet: null wrapper");
+        return 0;
+    }
+
+    int err = 0;
+    nodestate_t* result = wrapper->syncNet(static_cast<din_t>(din), static_cast<unsigned>(bubbleTime), err);
+    if (err != 0) {
+        throwJavaException(env, "nativeSyncNet: failed");
+        return 0;
+    }
+
+    return reinterpret_cast<jlong>(result);
+}
+
+// -------------------------
 // Frisbee / test
 // -------------------------
 JNIEXPORT jint JNICALL
@@ -507,8 +592,8 @@ return -1;
 return static_cast<jint>(wrapper->frisbee(static_cast<din_t>(din)));
 }
 
-JNIEXPORT jint JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeFrisbeeIcmp(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din, jint timeout, jint retry) {
+/*JNIEXPORT jint JNICALL
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeFrisbeeIcmp(JNIEnv* env, jobject *//*thiz*//*, jlong ptr, jint din, jint timeout, jint retry) {
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
 throwJavaException(env, "nativeFrisbeeIcmp: null wrapper");
@@ -518,7 +603,7 @@ return static_cast<jint>(wrapper->frisbee_icmp(static_cast<din_t>(din), static_c
 }
 
 JNIEXPORT jint JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeFrisbeeDperf(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din, jint sender_pkt_total, jint block_size, jint sender_trip_period) {
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeFrisbeeDperf(JNIEnv* env, jobject *//*thiz*//*, jlong ptr, jint din, jint sender_pkt_total, jint block_size, jint sender_trip_period) {
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
 throwJavaException(env, "nativeFrisbeeDperf: null wrapper");
@@ -528,7 +613,7 @@ return static_cast<jint>(wrapper->frisbee_dperf(static_cast<din_t>(din), static_
 }
 
 JNIEXPORT jlong JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeGetFrisbeeDperfResult(JNIEnv* env, jobject /*thiz*/, jlong ptr) {
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeGetFrisbeeDperfResult(JNIEnv* env, jobject *//*thiz*//*, jlong ptr) {
 // Return pointer to a heap-allocated dperf_info_result (caller must free)
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
@@ -538,7 +623,7 @@ return 0;
 dperf_info_result result = wrapper->get_frisbee_dperf_result();
 dperf_info_result* heap = new dperf_info_result(result);
 return reinterpret_cast<jlong>(heap);
-}
+}*/
 
 // -------------------------
 // Free helpers for objects allocated by wrapper
