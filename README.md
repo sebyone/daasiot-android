@@ -4,7 +4,6 @@ The **Daas IoT Android SDK** provides a Kotlin interface to the native **Daas** 
 
 This wrapper exposes core functionalities such as initialization, configuration management, node synchronization, and data operations — all powered by JNI bindings.
 
----
 ## 🧱 Requirements
 
 1. Android API level 24+
