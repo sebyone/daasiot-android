@@ -3,6 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
+group = "sebyone.daasiot"
+version = "0.0.1"
+
 android {
     namespace = "sebyone.daasiot_android"
     compileSdk = 36
@@ -59,7 +62,29 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+    // ✅ Modern output naming for AGP 8+
+    publishing {
+        singleVariant("release")
+    }
+
+    // Rename AAR outputs safely (AGP 8+)
+    afterEvaluate {
+        tasks.matching { it.name.startsWith("bundleReleaseAar") }.configureEach {
+            doLast {
+                val versionName = project.version.toString()
+                val buildDir = layout.buildDirectory.asFile.get()
+                val aarFile = file("$buildDir/outputs/aar/daasiotsdk-release.aar")
+                if (aarFile.exists()) {
+                    val newName = "daasiotsdk-${versionName}-release.aar"
+                    aarFile.renameTo(File(aarFile.parentFile, newName))
+                    println("✅ Renamed AAR to: $newName")
+                }
+            }
+        }
+    }
 }
+
 
 dependencies {
     implementation(libs.androidx.core.ktx)
