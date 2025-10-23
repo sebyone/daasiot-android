@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "sebyone.daasiot"
-version = "0.0.1"
+version = "0.0.2"
 
 android {
     namespace = "sebyone.daasiot_android"
@@ -68,23 +68,25 @@ android {
         singleVariant("release")
     }
 
-    // Rename AAR outputs safely (AGP 8+)
-    afterEvaluate {
-        tasks.matching { it.name.startsWith("bundleReleaseAar") }.configureEach {
-            doLast {
-                val versionName = project.version.toString()
-                val buildDir = layout.buildDirectory.asFile.get()
-                val aarFile = file("$buildDir/outputs/aar/daasiotsdk-release.aar")
-                if (aarFile.exists()) {
-                    val newName = "daasiotsdk-${versionName}-release.aar"
-                    aarFile.renameTo(File(aarFile.parentFile, newName))
-                    println("✅ Renamed AAR to: $newName")
-                }
+}
+
+
+// ✅ Rename AAR after assembleRelease
+val libVersion = version.toString()
+
+afterEvaluate {
+    tasks.named("assembleRelease").configure {
+        doLast {
+            val buildDir = layout.buildDirectory.asFile.get()
+            val aarFile = file("$buildDir/outputs/aar/daasiotsdk-release.aar")
+            if (aarFile.exists()) {
+                val newName = "daasiotsdk-${libVersion}-release.aar"
+                aarFile.renameTo(File(aarFile.parentFile, newName))
+                println("✅ Renamed AAR to: $newName")
             }
         }
     }
 }
-
 
 dependencies {
     implementation(libs.androidx.core.ktx)
