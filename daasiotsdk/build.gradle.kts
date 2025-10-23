@@ -68,23 +68,24 @@ android {
         singleVariant("release")
     }
 
-    // Rename AAR outputs safely (AGP 8+)
-    afterEvaluate {
-        tasks.matching { it.name.startsWith("bundleReleaseAar") }.configureEach {
-            doLast {
-                val versionName = project.version.toString()
-                val buildDir = layout.buildDirectory.asFile.get()
-                val aarFile = file("$buildDir/outputs/aar/daasiotsdk-release.aar")
-                if (aarFile.exists()) {
-                    val newName = "daasiotsdk-${versionName}-release.aar"
-                    aarFile.renameTo(File(aarFile.parentFile, newName))
-                    println("✅ Renamed AAR to: $newName")
-                }
+}
+
+
+// ✅ Rename AAR after assembleRelease — must be OUTSIDE android {}
+afterEvaluate {
+    tasks.named("assembleRelease").configure {
+        doLast {
+            val versionName = project.version.toString()
+            val buildDir = layout.buildDirectory.asFile.get()
+            val aarFile = file("$buildDir/outputs/aar/daasiotsdk-release.aar")
+            if (aarFile.exists()) {
+                val newName = "daasiotsdk-${versionName}-release.aar"
+                aarFile.renameTo(File(aarFile.parentFile, newName))
+                println("✅ Renamed AAR to: $newName")
             }
         }
     }
 }
-
 
 dependencies {
     implementation(libs.androidx.core.ktx)
