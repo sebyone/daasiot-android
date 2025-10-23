@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "sebyone.daasiot"
-version = "0.0.1"
+version = "0.0.2"
 
 android {
     namespace = "sebyone.daasiot_android"
@@ -71,15 +71,16 @@ android {
 }
 
 
-// ✅ Rename AAR after assembleRelease — must be OUTSIDE android {}
+// ✅ Rename AAR after assembleRelease
+val libVersion = version.toString()
+
 afterEvaluate {
     tasks.named("assembleRelease").configure {
         doLast {
-            val versionName = project.version.toString()
             val buildDir = layout.buildDirectory.asFile.get()
             val aarFile = file("$buildDir/outputs/aar/daasiotsdk-release.aar")
             if (aarFile.exists()) {
-                val newName = "daasiotsdk-${versionName}-release.aar"
+                val newName = "daasiotsdk-${libVersion}-release.aar"
                 aarFile.renameTo(File(aarFile.parentFile, newName))
                 println("✅ Renamed AAR to: $newName")
             }
