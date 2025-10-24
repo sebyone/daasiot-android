@@ -45,3 +45,21 @@ fun main() {
 ## Notes
 
 - Supported ABIs: armeabi-v7a, arm64-v8a, x86_64.
+
+## License
+
+This project is licensed under the Mozilla Public License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+### MPL-2.0 License Summary
+
+- ✅ Commercial use
+- ✅ Modification
+- ✅ Distribution
+- ✅ Patent use
+- ✅ Private use
+- ❗ License and copyright notice required
+- ❗ Disclose source (for modified files)
+- ❗ Same license (for modified files)
+- ❌ Liability
+- ❌ Warranty
+- ❌ Trademark use

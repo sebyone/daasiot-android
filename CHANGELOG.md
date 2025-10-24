@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.1] - 2025-10-24
 
+## libdaas Version 0.20.1
+
 ### Added
 - Initial release of **DaasWrapper**, providing Kotlin bindings to the native `daas_jni` library.
 - Implemented JNI integration with `System.loadLibrary("daas_jni")`.
