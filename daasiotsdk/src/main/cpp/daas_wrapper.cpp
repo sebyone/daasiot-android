@@ -158,7 +158,7 @@ DDO* DaasWrapper::createDDO(typeset_t typeset, stime_t timestamp) {
     return d;
 }
 
-void freeDDO(DDO* ptr) {
+void DaasWrapper::freeDDO(DDO* ptr) {
     delete ptr;
 }
 
@@ -277,9 +277,6 @@ int DaasWrapper::frisbee(din_t din) {
 
 /* Free helpers */
 void DaasWrapper::freeNodeState(nodestate_t* ptr) {
-    delete ptr;
-}
-void DaasWrapper::freeDDO(DDO* ptr) {
     delete ptr;
 }
 void DaasWrapper::freeDinList(dinlist_t* ptr) {

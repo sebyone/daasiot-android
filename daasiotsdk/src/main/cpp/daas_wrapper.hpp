@@ -84,12 +84,12 @@ public:
 
     // --- utility to free returned pointers ---
     static void freeNodeState(nodestate_t* ptr);
+    static void freeDDO(DDO* ptr);
     static void freeDinList(dinlist_t* ptr);
     static void freeTsetList(tsetlist_t* ptr);
 
     // DDO helpers
     DDO* createDDO(typeset_t typeset, stime_t timestamp = 0);
-    void freeDDO(DDO* ptr);
     bool ddo_setOrigin(DDO* ddo, din_t origin);
     bool ddo_setTypeset(DDO* ddo, typeset_t typeset);
     bool ddo_setTimestamp(DDO* ddo, stime_t ts);
