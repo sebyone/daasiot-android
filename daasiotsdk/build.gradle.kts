@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "sebyone.daasiot"
-version = "0.0.2"
+version = "0.1.0"
 
 android {
     namespace = "sebyone.daasiot_android"
