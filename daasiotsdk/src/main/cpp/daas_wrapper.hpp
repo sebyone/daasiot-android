@@ -84,9 +84,26 @@ public:
 
     // --- utility to free returned pointers ---
     static void freeNodeState(nodestate_t* ptr);
-    static void freeDDO(DDO* ptr);
     static void freeDinList(dinlist_t* ptr);
     static void freeTsetList(tsetlist_t* ptr);
+
+    // DDO helpers
+    DDO* createDDO(typeset_t typeset, stime_t timestamp = 0);
+    void freeDDO(DDO* ptr);
+    bool ddo_setOrigin(DDO* ddo, din_t origin);
+    bool ddo_setTypeset(DDO* ddo, typeset_t typeset);
+    bool ddo_setTimestamp(DDO* ddo, stime_t ts);
+    uint32_t ddo_setPayload(DDO* ddo, const uint8_t* data, uint32_t size);
+    uint32_t ddo_getPayloadSize(DDO* ddo);
+    uint32_t ddo_getPayloadAsBinary(DDO* ddo, uint8_t* buffer, uint32_t maxSize);
+
+    // lists
+    std::vector<din_t> listNodesAsVector();
+    std::vector<typeset_t> listTypesetsAsVector();
+
+    // sync/lock/unlock that return heap-copied nodestate_t
+    nodestate_t* unlock(din_t din, const char* skey, int& outErr);
+    nodestate_t* lock(const char* skey, unsigned policy_, int& outErr);
 
 private:
     DaasAPI daas_;
