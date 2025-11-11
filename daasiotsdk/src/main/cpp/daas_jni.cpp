@@ -405,16 +405,17 @@ return static_cast<jint>(read);
 // -------------------------
 // Transfer / typesets / DDOs
 // -------------------------
-JNIEXPORT jlong JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeListTypesetsCopy(JNIEnv* env, jobject /*thiz*/, jlong ptr) {
-auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
-if (!wrapper) {
-throwJavaException(env, "nativeListTypesetsCopy: null wrapper");
-return 0;
-}
-tsetlist_t* list = wrapper->listTypesetsCopy();
-return reinterpret_cast<jlong>(list);
-}
+// TODO: Implement thiis method when possible!
+// JNIEXPORT jlong JNICALL
+//         Java_sebyone_daasiot_1android_DaasWrapper_nativeListTypesetsCopy(JNIEnv* env, jobject /*thiz*/, jlong ptr) {
+// auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
+// if (!wrapper) {
+// throwJavaException(env, "nativeListTypesetsCopy: null wrapper");
+// return 0;
+// }
+// tsetlist_t* list = wrapper->listTypesetsCopy();
+// return reinterpret_cast<jlong>(list);
+// }
 
 JNIEXPORT jint JNICALL
         Java_sebyone_daasiot_1android_DaasWrapper_nativePull(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din, jlong outDDOptrAddr) {

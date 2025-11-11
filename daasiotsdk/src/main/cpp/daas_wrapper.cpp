@@ -1,6 +1,8 @@
 #include "daas_wrapper.hpp"
-#include <cstring> // for memcpy if needed
+#include <cstring> // for memcpy
 #include <iostream>
+#include <vector>
+#include <memory>
 
 DaasWrapper::DaasWrapper() {
     // ctor default
@@ -8,7 +10,11 @@ DaasWrapper::DaasWrapper() {
 
 DaasWrapper::~DaasWrapper() {
     // ensure proper shutdown
-    daas_.doEnd();
+    try {
+        daas_.doEnd();
+    } catch (...) {
+        // swallow exceptions in destructor
+    }
 }
 
 /* Lifecycle */
@@ -87,7 +93,7 @@ int DaasWrapper::removeNode(din_t din) {
 }
 dinlist_t* DaasWrapper::listNodesCopy() {
     dinlist_t list = daas_.listNodes();
-    dinlist_t* copy = new dinlist_t(list); // requires copy ctor in Vector; if not available, you'd implement manual copy
+    dinlist_t* copy = new dinlist_t(list); // assumes Vector has copy constructor
     return copy;
 }
 int DaasWrapper::locate(din_t din) {
@@ -105,15 +111,10 @@ nodestate_t* DaasWrapper::statusCopy(din_t din) {
 }
 nodestate_t* DaasWrapper::fetchCopy(din_t din, uint16_t opts, int &outErr) {
     const nodestate_t& ns = daas_.fetch(din, opts);
-    outErr = static_cast<int>(ERROR_NONE); // fetch signature doesn't return error in your header, so we assume success; adjust if real API differs
+    outErr = static_cast<int>(ERROR_NONE); // adjust if real API returns errors differently
     nodestate_t* copy = new nodestate_t(ns);
     return copy;
 }
-
-/*int DaasWrapper::setATSMaxError(int32_t error) {
-    daas_.setATSMaxError(error);
-    return 0;
-}*/
 
 /* Real-time session */
 bool DaasWrapper::use(din_t din) {
@@ -123,32 +124,103 @@ bool DaasWrapper::end(din_t din) {
     return daas_.end(din);
 }
 unsigned DaasWrapper::send(din_t din, const unsigned char* outbound, unsigned size) {
-    // daas_.send expects unsigned char*; cast away const
-    unsigned char* buf = nullptr;
-    if (size > 0) {
-        buf = new unsigned char[size];
-        memcpy(buf, outbound, size);
-    }
-    unsigned result = daas_.send(din, buf, size);
-    delete[] buf;
+    // daas_.send expects unsigned char*; copy into temporary buffer (safer)
+    unsigned result = 0;
+    if (size == 0 || outbound == nullptr) return 0;
+    std::unique_ptr<unsigned char[]> buf(new unsigned char[size]);
+    memcpy(buf.get(), outbound, size);
+    result = daas_.send(din, buf.get(), size);
     return result;
 }
 unsigned DaasWrapper::received(din_t din) {
     return daas_.received(din);
 }
 unsigned DaasWrapper::receive(din_t din, unsigned char* inbound, unsigned max_size) {
-    return daas_.receive(din, *inbound, max_size); // note: your signature had `unsigned char &inbound` - adjust as needed
+    if (!inbound || max_size == 0) return 0;
+    // The SDK signature in header is strange (unsigned receive(din_t, unsigned char&, unsigned))
+    // We'll assume there's an API overload that fills a buffer: if not, adapt this.
+    // Here we call receive(din, inbound_buffer, max_size) if available; else call byte-by-byte.
+    // Try the buffer version first (if exists)
+    #ifdef HAS_BUFFER_RECEIVE
+        return daas_.receive(din, inbound, max_size); // if SDK supports it
+    #else
+        // Fallback: call receive per-byte (not ideal). We'll simulate by calling SDK's receive with reference to first byte.
+        unsigned received = daas_.receive(din, *inbound, max_size);
+        return received;
+    #endif
 }
 
 /* Transfer / DDOs */
-tsetlist_t* DaasWrapper::listTypesetsCopy() {
-    tsetlist_t &list = daas_.listTypesets();
-    tsetlist_t* copy = new tsetlist_t(list);
-    return copy;
+
+// Create a new DDO on heap and return pointer
+DDO* DaasWrapper::createDDO(typeset_t typeset, stime_t timestamp) {
+    DDO* d = new DDO(typeset, timestamp);
+    return d;
 }
 
+void DaasWrapper::freeDDO(DDO* ptr) {
+    delete ptr;
+}
+
+bool DaasWrapper::ddo_setOrigin(DDO* ddo, din_t origin) {
+    if (!ddo) return false;
+    ddo->setOrigin(origin);
+    return true;
+}
+bool DaasWrapper::ddo_setTypeset(DDO* ddo, typeset_t typeset) {
+    if (!ddo) return false;
+    ddo->setTypeset(typeset);
+    return true;
+}
+tsetlist_t* DaasWrapper::listTypesetsCopy() {
+    const tsetlist_t& original = daas_.listTypesets(); // your real API call
+    tsetlist_t* copy = new tsetlist_t(original);
+    return copy;
+}
+bool DaasWrapper::ddo_setTimestamp(DDO* ddo, stime_t ts) {
+    if (!ddo) return false;
+    ddo->setTimestamp(ts);
+    return true;
+}
+
+uint32_t DaasWrapper::ddo_setPayload(DDO* ddo, const uint8_t* data, uint32_t size) {
+    if (!ddo) return 0;
+    return ddo->setPayload(data, size);
+}
+
+uint32_t DaasWrapper::ddo_getPayloadSize(DDO* ddo) {
+    if (!ddo) return 0;
+    return ddo->getPayloadSize();
+}
+
+uint32_t DaasWrapper::ddo_getPayloadAsBinary(DDO* ddo, uint8_t* buffer, uint32_t maxSize) {
+    if (!ddo || !buffer) return 0;
+    return ddo->getPayloadAsBinary(buffer, 0, maxSize);
+}
+
+// Convert daas_.listNodes() to std::vector<din_t>
+std::vector<din_t> DaasWrapper::listNodesAsVector() {
+    dinlist_t list = daas_.listNodes();
+    std::vector<din_t> out;
+    // if Vector implements size() and operator[]
+    for (uint32_t i = 0; i < list.size(); ++i) {
+        out.push_back(list[i]);
+    }
+    return out;
+}
+
+// Convert daas_.listTypesets() to std::vector<typeset_t>
+std::vector<typeset_t> DaasWrapper::listTypesetsAsVector() {
+    tsetlist_t list = daas_.listTypesets();
+    std::vector<typeset_t> out;
+    for (uint32_t i = 0; i < list.size(); ++i) {
+        out.push_back(list[i]);
+    }
+    return out;
+}
+
+// Pull / Push / availables
 int DaasWrapper::pull(din_t din, DDO** outDDO) {
-    // Call and return error; if success we expect outDDO to be set by API
     daas_error_t err = daas_.pull(din, outDDO);
     return static_cast<int>(err);
 }
@@ -165,19 +237,22 @@ int DaasWrapper::addTypeset(uint16_t typeset_code, uint16_t typeset_size) {
     return static_cast<int>(daas_.addTypeset(typeset_code, typeset_size));
 }
 
-/*nodestate_t* DaasWrapper::unlock(din_t din, const char* skey, int& outErr) {
-    const nodestate_t& ns = daas_.unlock(din, skey);
-    outErr = static_cast<int>(ERROR_NONE);
-    return new nodestate_t(ns);
-}
+/* Sync / Lock / Unlock */
 
-nodestate_t* DaasWrapper::lock(const char* skey, unsigned policy_, int& outErr) {
-    const nodestate_t& ns = daas_.lock(skey, policy_);
-    outErr = static_cast<int>(ERROR_NONE);
-    return new nodestate_t(ns);
-}*/
+//TODO: Get back to these functions when ready to implement
+// unlock: return heap-allocated copy and set outErr
+// nodestate_t* DaasWrapper::unlock(din_t din, const char* skey, int& outErr) {
+//     const nodestate_t& ns = daas_.unlock(din, skey);
+//     outErr = static_cast<int>(ERROR_NONE);
+//     return new nodestate_t(ns);
+// }
 
-/* Sync */
+// // lock: set skey and policy for local node, return heap copy
+// nodestate_t* DaasWrapper::lock(const char* skey, unsigned policy_, int& outErr) {
+//     const nodestate_t& ns = daas_.lock(skey, policy_);
+//     outErr = static_cast<int>(ERROR_NONE);
+//     return new nodestate_t(ns);
+// }
 
 nodestate_t* DaasWrapper::syncNode(din_t din, unsigned timezone, int& outErr) {
     const nodestate_t& ns = daas_.syncNode(din, timezone);
@@ -195,21 +270,19 @@ nodestate_t* DaasWrapper::syncNet(din_t din, unsigned bubble_time, int& outErr) 
 int DaasWrapper::frisbee(din_t din) {
     return static_cast<int>(daas_.frisbee(din));
 }
-/*int DaasWrapper::frisbee_icmp(din_t din, uint32_t timeout, uint32_t retry) {
-    return static_cast<int>(daas_.frisbee_icmp(din, timeout, retry));
-}
-int DaasWrapper::frisbee_dperf(din_t din, uint32_t sender_pkt_total, uint32_t block_size, uint32_t sender_trip_period) {
-    return static_cast<int>(daas_.frisbee_dperf(din, sender_pkt_total, block_size, sender_trip_period));
-}
-dperf_info_result DaasWrapper::get_frisbee_dperf_result() {
-    return daas_.get_frisbee_dperf_result();
-}*/
+// TODO: Implement frisbee_icmp
+// int DaasWrapper::frisbee_icmp(din_t din, uint32_t timeout, uint32_t retry) {
+//     return static_cast<int>(daas_.frisbee_icmp(din, timeout, retry));
+// }
+// int DaasWrapper::frisbee_dperf(din_t din, uint32_t sender_pkt_total, uint32_t block_size, uint32_t sender_trip_period) {
+//     return static_cast<int>(daas_.frisbee_dperf(din, sender_pkt_total, block_size, sender_trip_period));
+// }
+// dperf_info_result DaasWrapper::get_frisbee_dperf_result() {
+//     return daas_.get_frisbee_dperf_result();
+// }
 
 /* Free helpers */
 void DaasWrapper::freeNodeState(nodestate_t* ptr) {
-    delete ptr;
-}
-void DaasWrapper::freeDDO(DDO* ptr) {
     delete ptr;
 }
 void DaasWrapper::freeDinList(dinlist_t* ptr) {

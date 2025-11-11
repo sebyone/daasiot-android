@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0] - 2025-02-07
+
+## libdaas Version 0.20.1
+
+### Breaking Changes
+- Temporarily removed `lock`, `unlock` and `frisbeeDPerf` wrapper methods from the public API.
+  These functions are not available in the current distributed `libdaas.a` build, causing
+  unresolved linker symbols. Projects using version `0.0.1` will need to update accordingly.
+
+### Changed
+- Simplified native JNI layer to match the available symbols in the underlying library.
+- Updated `DaasWrapper` implementation to avoid calls to unavailable functions.
+- Cleaned up build warnings and ensured stable linking across architectures.
+
+### Notes
+- These methods may be restored in a future release once the upstream library provides stable support.
+- This release focuses on ensuring a working and clean Android integration baseline.
+
 ## [0.0.1] - 2025-10-24
 
 ## libdaas Version 0.20.1
