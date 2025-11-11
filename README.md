@@ -16,7 +16,7 @@ This wrapper exposes core functionalities such as initialization, configuration 
 
 ```kotlin
 dependencies {
-    implementation(files("libs/daasiotsdk-0.0.1-release.aar"))
+    implementation(files("libs/daasiotsdk-0.1.0-release.aar"))
 }
 ```
 
