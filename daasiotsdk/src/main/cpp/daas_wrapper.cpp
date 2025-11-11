@@ -172,6 +172,11 @@ bool DaasWrapper::ddo_setTypeset(DDO* ddo, typeset_t typeset) {
     ddo->setTypeset(typeset);
     return true;
 }
+tsetlist_t* DaasWrapper::listTypesetsCopy() {
+    const tsetlist_t& original = daas_.listTypesets(); // your real API call
+    tsetlist_t* copy = new tsetlist_t(original);
+    return copy;
+}
 bool DaasWrapper::ddo_setTimestamp(DDO* ddo, stime_t ts) {
     if (!ddo) return false;
     ddo->setTimestamp(ts);
@@ -234,19 +239,20 @@ int DaasWrapper::addTypeset(uint16_t typeset_code, uint16_t typeset_size) {
 
 /* Sync / Lock / Unlock */
 
+//TODO: Get back to these functions when ready to implement
 // unlock: return heap-allocated copy and set outErr
-nodestate_t* DaasWrapper::unlock(din_t din, const char* skey, int& outErr) {
-    const nodestate_t& ns = daas_.unlock(din, skey);
-    outErr = static_cast<int>(ERROR_NONE);
-    return new nodestate_t(ns);
-}
+// nodestate_t* DaasWrapper::unlock(din_t din, const char* skey, int& outErr) {
+//     const nodestate_t& ns = daas_.unlock(din, skey);
+//     outErr = static_cast<int>(ERROR_NONE);
+//     return new nodestate_t(ns);
+// }
 
-// lock: set skey and policy for local node, return heap copy
-nodestate_t* DaasWrapper::lock(const char* skey, unsigned policy_, int& outErr) {
-    const nodestate_t& ns = daas_.lock(skey, policy_);
-    outErr = static_cast<int>(ERROR_NONE);
-    return new nodestate_t(ns);
-}
+// // lock: set skey and policy for local node, return heap copy
+// nodestate_t* DaasWrapper::lock(const char* skey, unsigned policy_, int& outErr) {
+//     const nodestate_t& ns = daas_.lock(skey, policy_);
+//     outErr = static_cast<int>(ERROR_NONE);
+//     return new nodestate_t(ns);
+// }
 
 nodestate_t* DaasWrapper::syncNode(din_t din, unsigned timezone, int& outErr) {
     const nodestate_t& ns = daas_.syncNode(din, timezone);
