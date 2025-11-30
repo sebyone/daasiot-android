@@ -66,7 +66,7 @@ public:
     daas_error_t doEnd();                         // releases resources and deactivates node
    
     /**
-        @details Resets the local node and clears all resources.
+        @details Resets the local node and clears all resources. It disconnects also from the network that it currently is.
         @param none
         @returns ERROR_NONE on success, or an error code on failure.
         @end
@@ -124,6 +124,24 @@ public:
         @end
     */
     nodestate_t getStatus(); // returns local node's instance status
+
+    /**
+        @details The function sets whether the local node should accept all incoming requests, 
+        including those from unknown DINs, known din from different network or only from din inside the same network.
+       
+        @param policy_level:
+        - 0: accept requests only from known DINs inside the same network
+        - 1: accept requests from known DINs from different networks and inside the same network
+        - 2: accept requests from all DINs, including unknown ones
+
+        Default policy_level is 1
+
+        Note: during the discovery, the policy_level is temporary set to 2 since the node has to accept all the incoming request. 
+        Right after the discovery process is compleated or goes out of time, the policy_level is set back to the previous value.
+
+        @end
+    */
+    void setAcceptRequestsLevel(int policy_level);
      
     /**
         @details Saves the current configuration to the specified storage interface.
@@ -198,6 +216,37 @@ public:
     */
     daas_error_t remove(din_t din);
 
+    /**
+     *  @details Starts a discovery process to locate nodes in the network.\n 
+     *  This process will send the enabled drivers URI to a sort of broadcast in order to auto-map this node to remote ones.\n
+     *  Note that the reception of this packet cannot be controlled, it can only be disabled.\n
+     
+        @param none : starts discovery on all available links
+        @param link_: (optional) the communication technology to use for discovery (e.g., _LINK_INET4, _LINK_UART, _LINK_MQTT5). If not specified, all available links will be used.
+
+        @returns ERROR_NONE on success, or an error code on failure.
+        @see doInit
+
+        \par Example:
+        \snippet examples/discovery/main.cpp discovery_without_init
+        @end
+     */
+      daas_error_t discovery();
+      daas_error_t discovery(link_t link_);
+
+
+    /**
+        @details Sets the discovery state of the local node. 
+        If enabled, the node will accept incoming discovery packets from other nodes and activate also the transmission of discovery packets.
+        
+        @param activation: true to enable discovery, false to disable it.
+
+        @returns none.
+        @end
+    */
+      void setDiscoveryState(bool activation); 
+
+
     /* Availability -------------------------------------------------------------------------------------------- */
     
     /**
@@ -214,13 +263,14 @@ public:
         @details It starts a process to locate the node if it is not inside the known table.
         
         @param din_: DIN of the node to locate
+        @param timeout: Maximum time to wait for the node to be located (in milliseconds). Default is 1000 ms.
 
         @returns ERROR_NONE if the node is known, or an error code if it is not.
 
         @see pull
         @end
     */
-    daas_error_t locate(din_t din);
+    daas_error_t locate(din_t din, int timeout = 1000); // Locate node if not inside known table (calls pull)
     
     /**
         @details Send the local node's status to a remote node.
@@ -230,7 +280,7 @@ public:
         @returns ERROR_NONE on success, or an error code on failure.
         @end
     */
-    daas_error_t send_status(din_t din); // Send local status to remote node (din)
+    daas_error_t sendStatus(din_t din); // Send local status to remote node (din)
     
     /**
         @details Fetches the status of a remote node.
@@ -470,7 +520,7 @@ public:
         @returns ERROR_NONE on success, or an error code on failure.
         @end
     */
-    daas_error_t frisbee_icmp(din_t din, uint32_t timeout, uint32_t retry); 
+    daas_error_t frisbeeICMP(din_t din, uint32_t timeout, uint32_t retry); 
 
     /**
         @details Measures the performance of data transfer to a remote node.
@@ -483,7 +533,7 @@ public:
         @returns ERROR_NONE on success, or an error code on failure.
         @end
     */
-    daas_error_t frisbee_dperf(din_t din, uint32_t sender_pkt_total = 10, uint32_t block_size = 1024*1024, uint32_t sender_trip_period = 0); 
+    daas_error_t frisbeeDPERF(din_t din, uint32_t sender_pkt_total = 10, uint32_t block_size = 1024*1024, uint32_t sender_trip_period = 0); 
     
     /**
         @details Returns the result of a frisbee performance test.
@@ -499,7 +549,7 @@ public:
         - remote_data_counter: total data received by the receiver in bytes
         @end
     */
-    dperf_info_result get_frisbee_dperf_result();
+    dperf_info_result getFrisbeeResultDPERF();
 };
 
 #endif // DAASIOT_H

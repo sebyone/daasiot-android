@@ -291,7 +291,7 @@ if (!wrapper) {
 throwJavaException(env, "nativeSendStatus: null wrapper");
 return -1;
 }
-return static_cast<jint>(wrapper->send_status(static_cast<din_t>(din)));
+return static_cast<jint>(wrapper->sendStatus(static_cast<din_t>(din)));
 }
 
 JNIEXPORT jlong JNICALL
