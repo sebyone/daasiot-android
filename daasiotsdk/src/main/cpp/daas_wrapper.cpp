@@ -101,17 +101,16 @@ int DaasWrapper::locate(din_t din) {
 }
 
 /* Exchange */
-int DaasWrapper::send_status(din_t din) {
-    return static_cast<int>(daas_.send_status(din));
+int DaasWrapper::sendStatus(din_t din) {
+    return static_cast<int>(daas_.sendStatus(din));
 }
 nodestate_t* DaasWrapper::statusCopy(din_t din) {
     const nodestate_t& ns = daas_.status(din);
     nodestate_t* copy = new nodestate_t(ns);
     return copy;
 }
-nodestate_t* DaasWrapper::fetchCopy(din_t din, uint16_t opts, int &outErr) {
+nodestate_t* DaasWrapper::fetchCopy(din_t din, uint16_t opts) {
     const nodestate_t& ns = daas_.fetch(din, opts);
-    outErr = static_cast<int>(ERROR_NONE); // adjust if real API returns errors differently
     nodestate_t* copy = new nodestate_t(ns);
     return copy;
 }
@@ -153,8 +152,8 @@ unsigned DaasWrapper::receive(din_t din, unsigned char* inbound, unsigned max_si
 /* Transfer / DDOs */
 
 // Create a new DDO on heap and return pointer
-DDO* DaasWrapper::createDDO(typeset_t typeset, stime_t timestamp) {
-    DDO* d = new DDO(typeset, timestamp);
+DDO* DaasWrapper::createDDO(typeset_t typeset) {
+    DDO* d = new DDO(typeset);
     return d;
 }
 
@@ -162,11 +161,6 @@ void DaasWrapper::freeDDO(DDO* ptr) {
     delete ptr;
 }
 
-bool DaasWrapper::ddo_setOrigin(DDO* ddo, din_t origin) {
-    if (!ddo) return false;
-    ddo->setOrigin(origin);
-    return true;
-}
 bool DaasWrapper::ddo_setTypeset(DDO* ddo, typeset_t typeset) {
     if (!ddo) return false;
     ddo->setTypeset(typeset);
@@ -176,11 +170,6 @@ tsetlist_t* DaasWrapper::listTypesetsCopy() {
     const tsetlist_t& original = daas_.listTypesets(); // your real API call
     tsetlist_t* copy = new tsetlist_t(original);
     return copy;
-}
-bool DaasWrapper::ddo_setTimestamp(DDO* ddo, stime_t ts) {
-    if (!ddo) return false;
-    ddo->setTimestamp(ts);
-    return true;
 }
 
 uint32_t DaasWrapper::ddo_setPayload(DDO* ddo, const uint8_t* data, uint32_t size) {

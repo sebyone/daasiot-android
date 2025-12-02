@@ -44,9 +44,9 @@
 class DaasAPI
 {
 public:
-    DaasAPI();                                    
-    DaasAPI(IDaasApiEvent *);                     
-    DaasAPI(IDaasApiEvent *, const char *lhver_); 
+    DaasAPI();
+    DaasAPI(IDaasApiEvent *);
+    DaasAPI(IDaasApiEvent *, const char *lhver_);
     ~DaasAPI();
 
     //////////////////////////////////////////////////////////////////////
@@ -56,23 +56,23 @@ public:
     const char *listAvailableDrivers();           // Returns drivers list: 2.INET4;3.UART;4.MQTT
     const char *getVersion();                     // returns daas-version
     const char *getBuildInfo();                     // returns local daas-stack details
-    
+
     /**
-    @details Releases resources and deactivates the node. 
+    @details Releases resources and deactivates the node.
     @param none
     @returns ERROR_NONE on success, or an error code on failure.
     @end
     */
     daas_error_t doEnd();                         // releases resources and deactivates node
-   
+
     /**
-        @details Resets the local node and clears all resources.
+        @details Resets the local node and clears all resources. It disconnects also from the network that it currently is.
         @param none
         @returns ERROR_NONE on success, or an error code on failure.
         @end
     */
     daas_error_t doReset();                       // reset resources and restarts services
-    
+
     /**
         @details Initializes services and resources for the local node.
         @param sid_: SID of the local node
@@ -84,25 +84,25 @@ public:
         @end
     */
     daas_error_t doInit(din_t sid_, din_t din_);  // initializes services and resources (Real-Time or Multi-Threading, release dependent)
-    
+
     /**
 
         @details Performs the node's task in either real-time or multi-threading mode.
-        
+
         @param mode:
         - PERFORM_CORE_THREAD for multi-threading mode
         - PERFORM_CORE_NO_THREAD for real-time mode
-        
+
         @returns ERROR_NONE on success, or an error code on failure.
 
         @see doInit
         @end
     */
     daas_error_t doPerform(performs_mode_t mode); // perform node's task ( in RT mode needs to be called cyclically)
-    
+
     /**
         @details Configure driver for network technology (links)
-        
+
         @param driver_id: the communication technology to enable (e.g., _LINK_INET4, _LINK_UART, _LINK_MQTT5)
         @param local_uri: the physical address of the local node (e.g., "192.168.1.1:2020")
 
@@ -115,23 +115,41 @@ public:
 
     /**
         @details Returns the status of the local node.
-       
+
         @param none
-        
+
         @returns the status of the local node.
         - This includes hardware version, linked channels, synchronization status, security policy, and more.
-    
+
         @end
     */
     nodestate_t getStatus(); // returns local node's instance status
-     
+
+    /**
+        @details The function sets whether the local node should accept all incoming requests,
+        including those from unknown DINs, known din from different network or only from din inside the same network.
+
+        @param policy_level:
+        - 0: accept requests only from known DINs inside the same network
+        - 1: accept requests from known DINs from different networks and inside the same network
+        - 2: accept requests from all DINs, including unknown ones
+
+        Default policy_level is 1
+
+        Note: during the discovery, the policy_level is temporary set to 2 since the node has to accept all the incoming request.
+        Right after the discovery process is compleated or goes out of time, the policy_level is set back to the previous value.
+
+        @end
+    */
+    void setAcceptRequestsLevel(int policy_level);
+
     /**
         @details Saves the current configuration to the specified storage interface.
-        
+
         @param storage_interface: the interface to save the configuration (e.g., a file system, database, etc.)
-        
+
         @returns true if the backup was successful, false otherwise.
-        
+
         @see loadConfiguration
         @end
     */
@@ -139,17 +157,17 @@ public:
 
     /**
         @details Loads the configuration from the specified storage interface.
-        
+
         @param storage_interface: the interface to load the configuration from (e.g., a file system, database, etc.)
-        
+
         @returns true if the configuration was loaded successfully, false otherwise.
-        
+
         \par Example:
         \snippet examples/restore/main.cpp backup_restore
         @end
     */
     bool loadConfiguration(IDepot* storage_interface);
-    
+
     /**
         @details Resets the system's statistics data.
 
@@ -168,13 +186,13 @@ public:
         @returns the system statistics for the given label.
         @end
     */
-    uint64_t getSystemStatistics(syscode_t label); 
-   
+    uint64_t getSystemStatistics(syscode_t label);
+
     /* Mapping      -------------------------------------------------------------------------------------------- */
 
     /**
         @details Maps a new node to the local instance.
-       
+
         @param din: DIN of the node to map
         @param link_: the communication technology to use (e.g., _LINK_INET4, _LINK_UART, _LINK_MQTT5)
         @param suri: the physical address of the node (e.g., "192.168.1.1:2020")
@@ -187,7 +205,7 @@ public:
     daas_error_t map(din_t din);                                                   // adds new node to local instance
     daas_error_t map(din_t din, link_t link_, const char *suri);                   // adds node-identifier and related physical address ( link: 1="INET4", 2="UART", 3="MQTT5")
     daas_error_t map(din_t din, link_t link_, const char *suri, const char *skey); // adds node-identifier and related physical address ( link: 1="INET4", 2="UART", 3="MQTT5")
-    
+
     /**
         @details Removes a node from the local instance.
 
@@ -198,8 +216,39 @@ public:
     */
     daas_error_t remove(din_t din);
 
+    /**
+     *  @details Starts a discovery process to locate nodes in the network.\n
+     *  This process will send the enabled drivers URI to a sort of broadcast in order to auto-map this node to remote ones.\n
+     *  Note that the reception of this packet cannot be controlled, it can only be disabled.\n
+
+        @param none : starts discovery on all available links
+        @param link_: (optional) the communication technology to use for discovery (e.g., _LINK_INET4, _LINK_UART, _LINK_MQTT5). If not specified, all available links will be used.
+
+        @returns ERROR_NONE on success, or an error code on failure.
+        @see doInit
+
+        \par Example:
+        \snippet examples/discovery/main.cpp discovery_without_init
+        @end
+     */
+      daas_error_t discovery();
+      daas_error_t discovery(link_t link_);
+
+
+    /**
+        @details Sets the discovery state of the local node.
+        If enabled, the node will accept incoming discovery packets from other nodes and activate also the transmission of discovery packets.
+
+        @param activation: true to enable discovery, false to disable it.
+
+        @returns none.
+        @end
+    */
+      void setDiscoveryState(bool activation);
+
+
     /* Availability -------------------------------------------------------------------------------------------- */
-    
+
     /**
         @details Returns map entries (known nodes) in the local instance.
 
@@ -209,34 +258,35 @@ public:
         @end
     */
     dinlist_t listNodes();                       // Returns map entries  (knows nodes) ( din1, din2, )
-    
+
     /**
         @details It starts a process to locate the node if it is not inside the known table.
-        
+
         @param din_: DIN of the node to locate
+        @param timeout: Maximum time to wait for the node to be located (in milliseconds). Default is 1000 ms.
 
         @returns ERROR_NONE if the node is known, or an error code if it is not.
 
         @see pull
         @end
     */
-    daas_error_t locate(din_t din);
-    
+    daas_error_t locate(din_t din, int timeout = 1000); // Locate node if not inside known table (calls pull)
+
     /**
         @details Send the local node's status to a remote node.
-        
+
         @param din: DIN of the remote node to send the status to
 
         @returns ERROR_NONE on success, or an error code on failure.
         @end
     */
-    daas_error_t send_status(din_t din); // Send local status to remote node (din)
-    
+    daas_error_t sendStatus(din_t din); // Send local status to remote node (din)
+
     /**
         @details Fetches the status of a remote node.
 
         @param din: DIN of the remote node to fetch the status from
-        
+
         @returns the nodestate_t of the remote node.
         @end
     */
@@ -244,10 +294,10 @@ public:
 
     /**
         @details Fetches the status of a remote node and updates its status in the local instance.
-        
+
         @param din: DIN of the remote node to fetch the status from
-        @param opts: options for fetching 
-       
+        @param opts: options for fetching
+
         @returns the nodestate_t of the remote node after fetching.
         @end
     */
@@ -255,40 +305,40 @@ public:
 
     /**
         @details Time with ATS correction used to be able to communicate inside the DaaS network.
-        
+
         @param none
-        
+
         @returns the synced timestamp of the local node.
         @end
     */
     uint64_t getSyncedTimestamp();
 
     /* Security     -------------------------------------------------------------------------------------------- */
-    
+
     /**
         @details Unlocks a remote node by setting its security key.
-        
+
         @param din: DIN of the remote node to unlock
         @param skey: the security key to set
-        
+
         @returns the nodestate_t of the remote node after unlocking.
         @end
     */
-    const nodestate_t& unlock(din_t din, const char *skey); 
-    
+    const nodestate_t& unlock(din_t din, const char *skey);
+
     /**
         @details Set SKEY and security policy for local node
-        
+
         @param skey: the security key to set
         @param policy_: the security policy to set
 
         @returns the nodestate_t of the local node after setting the security key and policy.
-        @end    
+        @end
     */
     const nodestate_t& lock(const char *skey, unsigned policy_);
 
     /* Synchronize  -------------------------------------------------------------------------------------------- */
-    
+
     /**
         @details Set the local system time on remote node din and synchronize ATS.
 
@@ -298,7 +348,7 @@ public:
         @returns the nodestate_t of the remote node after synchronization.
         @end
     */
-    const nodestate_t& syncNode(din_t din, unsigned timezone);  
+    const nodestate_t& syncNode(din_t din, unsigned timezone);
 
     /**
         @details Set the local system time on remote node din and synchronize ATS
@@ -313,14 +363,14 @@ public:
 
     /**
         @details Set the maximum error allowed for ATS synchronization
-        
+
         @param error: the maximum error in milliseconds
         @end
     */
     void setATSMaxError(int32_t error); // ATS
 
     /* Exchange     -------------------------------------------------------------------------------------------- */
-    
+
     /**
         @details Starts a real-time session with a remote node.
 
@@ -329,11 +379,11 @@ public:
         @returns true if the RT session was successfully started, false otherwise. (OPEN CONNECTION!!!!)
         @end
     */
-    bool use(din_t din);                                                    
+    bool use(din_t din);
 
     /**
         @details Ends a real-time session with a remote node.
-        
+
         @param din: DIN of the remote node to end the session with
 
         @returns true if the RT session was successfully ended, false otherwise.
@@ -343,7 +393,7 @@ public:
 
     /**
         @details Sends data to a remote node in a real-time session.
-        
+
         @param din: DIN of the remote node to send data to
         @param outbound: pointer to the data to send
         @param size: size of the data to send
@@ -356,7 +406,7 @@ public:
 
     /**
         @details Checks if there is data available from a remote node in a real-time session.
-        
+
         @param din: DIN of the remote node to check for data
 
         @returns the size of data received.
@@ -368,7 +418,7 @@ public:
 
     /**
         @details Receives data from a remote node in a real-time session.
-        
+
         @param din: DIN of the remote node to receive data from
         @param inbound: reference to a variable that will hold the received data
         @param max_size: maximum size of data to receive
@@ -382,22 +432,22 @@ public:
     /* Transfer     -------------------------------------------------------------------------------------------- */
     /**
         @details Returns a list of user-defined typesets.
-        
+
         @param none
 
         @returns a reference to the list of user-defined typesets.
-        
+
         @note The list is of type tsetlist_t, which is a Vector of typeset
         @end
     */
     tsetlist_t &listTypesets();
-   
+
     /**
         @details Pulls a DDO from a remote node.
 
         @param din: DIN of the remote node to pull data from
         @param inboundDDO: pointer to a DDO pointer that will hold the pulled DDO
-        
+
         @returns ERROR_NONE on success, or an error code on failure.
 
         \par Example:
@@ -427,7 +477,7 @@ public:
 
         @param din: DIN of the remote node to check for available DDOs
         @param count: reference to a variable that will hold the number of available DDOs
-       
+
         @returns ERROR_NONE on success, or an error code on failure.
 
         @see pull
@@ -446,8 +496,8 @@ public:
         @end
     */
     daas_error_t addTypeset(const uint16_t typeset_code, const uint16_t typeset_size);
-    
-    
+
+
     /* TEST */
 
     /**
@@ -458,7 +508,7 @@ public:
         @returns ERROR_NONE on success, or an error code on failure.
         @end
     */
-    daas_error_t frisbee(din_t din);               
+    daas_error_t frisbee(din_t din);
 
     /**
         @details Pings a remote node with a specified timeout and retry count.
@@ -470,26 +520,26 @@ public:
         @returns ERROR_NONE on success, or an error code on failure.
         @end
     */
-    daas_error_t frisbee_icmp(din_t din, uint32_t timeout, uint32_t retry); 
+    daas_error_t frisbeeICMP(din_t din, uint32_t timeout, uint32_t retry);
 
     /**
         @details Measures the performance of data transfer to a remote node.
-        
+
         @param din: DIN of the remote node to ping
         @param sender_pkt_total: total number of packets to send
         @param block_size: size of each packet in bytes
         @param sender_trip_period: time period between each packet sent (in milliseconds)
-        
+
         @returns ERROR_NONE on success, or an error code on failure.
         @end
     */
-    daas_error_t frisbee_dperf(din_t din, uint32_t sender_pkt_total = 10, uint32_t block_size = 1024*1024, uint32_t sender_trip_period = 0); 
-    
+    daas_error_t frisbeeDPERF(din_t din, uint32_t sender_pkt_total = 10, uint32_t block_size = 1024*1024, uint32_t sender_trip_period = 0);
+
     /**
         @details Returns the result of a frisbee performance test.
-        
+
         @param none
-        
+
         @returns a dperf_info_result structure containing the performance test results:
         - sender_first_timestamp: timestamp of the first packet sent by the sender
         - local_end_timestamp: timestamp of the last packet received by the sender
@@ -499,7 +549,7 @@ public:
         - remote_data_counter: total data received by the receiver in bytes
         @end
     */
-    dperf_info_result get_frisbee_dperf_result();
+    dperf_info_result getFrisbeeResultDPERF();
 };
 
 #endif // DAASIOT_H

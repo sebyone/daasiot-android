@@ -45,11 +45,11 @@ public:
     int locate(din_t din);
 
     // --- Send / Receive / Exchange ---
-    int send_status(din_t din);
+    int sendStatus(din_t din);
     // returns pointer to nodestate_t copy (caller frees)
     nodestate_t* statusCopy(din_t din);
     // fetch: returns pointer copy and int status
-    nodestate_t* fetchCopy(din_t din, uint16_t opts, int &outErr);
+    nodestate_t* fetchCopy(din_t din, uint16_t opts);
 
 //    TODO: wait for the library implementation
     /*bool setATSMaxError(int32_t error);*/
@@ -89,10 +89,8 @@ public:
     static void freeTsetList(tsetlist_t* ptr);
 
     // DDO helpers
-    DDO* createDDO(typeset_t typeset, stime_t timestamp = 0);
-    bool ddo_setOrigin(DDO* ddo, din_t origin);
+    DDO* createDDO(typeset_t typeset);
     bool ddo_setTypeset(DDO* ddo, typeset_t typeset);
-    bool ddo_setTimestamp(DDO* ddo, stime_t ts);
     uint32_t ddo_setPayload(DDO* ddo, const uint8_t* data, uint32_t size);
     uint32_t ddo_getPayloadSize(DDO* ddo);
     uint32_t ddo_getPayloadAsBinary(DDO* ddo, uint8_t* buffer, uint32_t maxSize);

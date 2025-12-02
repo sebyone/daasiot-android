@@ -11,7 +11,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 30
 
         // ✅ Removed versionCode / versionName — not valid in libraries
         // ✅ targetSdk moved below

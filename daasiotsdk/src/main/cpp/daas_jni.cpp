@@ -218,7 +218,8 @@ return static_cast<jlong>(val);
 // Mapping & availability
 // -------------------------
 JNIEXPORT jint JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeMap(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din) {
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeMap(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din,
+                                                            jint link, jstring uri, jstring skey) {
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
 throwJavaException(env, "nativeMap: null wrapper");
@@ -291,7 +292,7 @@ if (!wrapper) {
 throwJavaException(env, "nativeSendStatus: null wrapper");
 return -1;
 }
-return static_cast<jint>(wrapper->send_status(static_cast<din_t>(din)));
+return static_cast<jint>(wrapper->sendStatus(static_cast<din_t>(din)));
 }
 
 JNIEXPORT jlong JNICALL
@@ -306,7 +307,7 @@ return reinterpret_cast<jlong>(st);
 }
 
 JNIEXPORT jlong JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeFetchCopy(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din, jint opts, jobject outErrHolder) {
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeFetchCopy(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din, jint opts) {
 // outErrHolder is optional; we'll return pointer and the caller should call a separate method to get error if needed.
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
@@ -314,9 +315,8 @@ throwJavaException(env, "nativeFetchCopy: null wrapper");
 return 0;
 }
 int err = 0;
-nodestate_t* st = wrapper->fetchCopy(static_cast<din_t>(din), static_cast<uint16_t>(opts), err);
+nodestate_t* st = wrapper->fetchCopy(static_cast<din_t>(din), static_cast<uint16_t>(opts));
 // We return the pointer; if user needs error, they should provide an int holder. For simplicity, we don't fill outErrHolder here.
-(void) outErrHolder;
 return reinterpret_cast<jlong>(st);
 }
 
@@ -405,7 +405,7 @@ return static_cast<jint>(read);
 // -------------------------
 // Transfer / typesets / DDOs
 // -------------------------
-// TODO: Implement thiis method when possible!
+// TODO: Implement this method when possible!
 // JNIEXPORT jlong JNICALL
 //         Java_sebyone_daasiot_1android_DaasWrapper_nativeListTypesetsCopy(JNIEnv* env, jobject /*thiz*/, jlong ptr) {
 // auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
@@ -417,8 +417,8 @@ return static_cast<jint>(read);
 // return reinterpret_cast<jlong>(list);
 // }
 
-JNIEXPORT jint JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativePull(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din, jlong outDDOptrAddr) {
+JNIEXPORT jlong JNICALL
+        Java_sebyone_daasiot_1android_DaasWrapper_nativePull(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din) {
 auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
 if (!wrapper) {
 throwJavaException(env, "nativePull: null wrapper");
@@ -426,16 +426,10 @@ return -1;
 }
 DDO* outDDO = nullptr;
 int rc = wrapper->pull(static_cast<din_t>(din), &outDDO);
-// If caller provided a location (outDDOptrAddr) they can store the pointer there (not done in native)
-// We return the error code and the caller should call nativeGetPulledDDOPointer (separate) or change usage to receive pointer as long return.
-// Simpler: return pointer as jlong on success; we'll return pointer encoded in jlong (but signature now returns int).
-// To keep compatibility with signature, we store pointer into a known global map OR better: change signature - but for now:
-// Return error code; user should call nativeGetLastPulledDDOPtr (not implemented). To keep simple, return error and also keep pointer as result in a separate method below.
-// For clarity, we will instead return the pointer as jlong via a different JNI method (nativePullReturnPtr). Here we just return rc.
-// (User: use nativePullReturnPtr below)
-// Free responsibility: caller must call nativeFreeDDO(ptr)
-(void) outDDO;
-return static_cast<jint>(rc);
+
+if (rc != 0)
+    return -1;
+return reinterpret_cast<jlong>(outDDO);;
 }
 
 // Alternative pull that returns pointer directly (recommended)
@@ -469,20 +463,28 @@ return -1;
 return static_cast<jint>(wrapper->push(static_cast<din_t>(din), ddo));
 }
 
-JNIEXPORT jint JNICALL
-        Java_sebyone_daasiot_1android_DaasWrapper_nativeAvailablesPull(JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din, jobject countHolder) {
-// countHolder is unused in this native binding. We'll return count in the jint return value along with an error code - not ideal.
-// Simpler approach: call the method to get count via separate JNI if needed. Here we only call and return error code.
-auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
-if (!wrapper) {
-throwJavaException(env, "nativeAvailablesPull: null wrapper");
-return -1;
-}
-uint32_t count = 0;
-int rc = wrapper->availablesPull(static_cast<din_t>(din), count);
-// If you want to return the count to Java, consider returning a jintArray {rc, count} instead. For now, we return rc and user can call another method to fetch count.
-(void) countHolder;
-return static_cast<jint>(rc);
+JNIEXPORT jintArray JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeAvailablesPull(
+        JNIEnv* env, jobject /*thiz*/, jlong ptr, jint din) {
+
+    auto* wrapper = reinterpret_cast<DaasWrapper*>(ptr);
+    if (!wrapper) {
+        throwJavaException(env, "nativeAvailablesPull: null wrapper");
+        return nullptr;
+    }
+
+    uint32_t count = 0;
+    int rc = wrapper->availablesPull(static_cast<din_t>(din), count);
+
+    jintArray result = env->NewIntArray(2);
+    if (!result) return nullptr;
+
+    jint values[2];
+    values[0] = rc;                // error code (0 = success)
+    values[1] = static_cast<jint>(count);
+
+    env->SetIntArrayRegion(result, 0, 2, values);
+    return result;
 }
 
 JNIEXPORT jint JNICALL

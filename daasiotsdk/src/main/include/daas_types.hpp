@@ -40,29 +40,86 @@
 #include <stdint.h>
 
 typedef uint64_t stime_t;     // Time-stamp absolute date (64bit) !!!!!!!!!!!!!!! SYSTEM RESOURCE
-typedef uint32_t din_t;       // DIN (32bit, 0 NULL,  )
+typedef uint64_t din_t;       // DIN (64bit, 0 NULL,  )
 typedef uint16_t typeset_t;   // Typeset (16bit)
+
+enum syscode_t
+{
+    ___undefined = 0,
+
+    _cor_dme_sended,
+    _cor_dme_received,
+    _cor_dme_routed,
+
+    _cor_rx_buffer,
+    _cor_tx_buffer,
+
+    // ATS
+    _ats_delta_avg,
+    _ats_sync_counter,
+    _ats_msg_decoded,
+    _ats_msg_encoded,
+};
+
+/* DRIVER TYPES */
+typedef enum : unsigned // Supported communications technologies
+{
+    _LINK_NONE = 0, // ND
+    _LINK_DAAS,     // DaaS routing & loopback
+    _LINK_INET4,    // Inet/IP
+    _LINK_BT, // Bluetooth
+    _LINK_MQTT5,    // MQTT
+    _LINK_UART,     // Serial line
+    _LINK_RAW
+} link_t;
+
+typedef enum
+{
+    PERFORM_CORE_THREAD = 0,
+    PERFORM_CORE_NO_THREAD
+} performs_mode_t;
+
+typedef enum
+{
+    ERROR_NONE = 0,
+    ERROR_CORE_ALREADY_INITIALIZED, //Modified from ERROR_ALREADY_INITIALIZED to avoid windows.h conflicts
+    ERROR_CORE_STOPPED,
+    ERROR_CANNOT_INITIALIZE,
+    ERROR_CANNOT_CREATE_NODE,
+    ERROR_DIN_ALREADY_EXIST,
+    ERROR_CANNOT_MAP_NODE,
+    ERROR_INVALID_USER_TYPESET,
+    ERROR_SEND_DDO,
+    ERROR_NO_DDO_PRESENT,
+    ERROR_DIN_UNKNOWN,
+    ERROR_CHANNEL_FAILURE,
+    ERROR_ATS_NOT_SYNCED,
+    ERROR_DISCOVERY_DISABLED,
+    // core
+    ERROR_INVALID_DME,
+    ERROR_THREADS_ALREADY_STARTED,
+    ERROR_NOT_IMPLEMENTED,
+    ERROR_UNKNOWN
+
+} daas_error_t;
 
 class DDO
 {
 public:
     DDO();
     DDO(typeset_t typeset_);
-    DDO(typeset_t typeset_, stime_t timestamp_);
     DDO(const DDO &ddo_);
     ~DDO();
 
     DDO *getDDO() { return this; }
 
     void clearPayload();
-    void setOrigin(din_t);
     void setTypeset(typeset_t);
-    void setTimestamp(stime_t tstamp);
     
     din_t getOrigin();
     stime_t getTimestamp();
     typeset_t getTypeset();
-
+    
     uint32_t setPayload(const void *data_, uint32_t size_);
     uint32_t getPayloadSize(void) { return _size; }
     uint32_t getPayloadAsBinary(uint8_t *pbuffer_, unsigned offset_, uint32_t maxSize_);
@@ -71,6 +128,7 @@ public:
     uint8_t *getPayloadCurrentPositionPointer();
     
     inline uint8_t *getPayloadPtr() { return _payload; }
+
 private:
     typeset_t _typeset = 0; // Typeset (16bit)
     stime_t _timestamp = 0; // Time-stamp absolute system's date and time (64bit)
@@ -78,6 +136,11 @@ private:
     uint32_t _data_offset = 0;
     uint8_t *_payload = nullptr;
     din_t _origin = 0;      // DIN origin (32bit)
+
+    void setOrigin(din_t);
+    void setTimestamp(stime_t tstamp);
+
+    friend class DME_USR;
 };
 
 template <typename T>
@@ -112,12 +175,14 @@ class IDaasApiEvent
 {
 public:
     virtual ~IDaasApiEvent() = default;
-    virtual void dinAcceptedEvent(din_t) = 0;
-    virtual void ddoReceivedEvent(int payload_size, typeset_t, din_t) = 0;
-    virtual void frisbeeReceivedEvent(din_t) = 0;
-    virtual void nodeStateReceivedEvent(din_t) = 0;
+    virtual void dinAccepted(din_t) = 0;
+    virtual void ddoReceived(int payload_size, typeset_t, din_t) = 0;
+    virtual void frisbeeReceived(din_t) = 0;
+    virtual void nodeStateReceived(din_t) = 0;
     virtual void atsSyncCompleted(din_t) = 0;
     virtual void frisbeeDperfCompleted(din_t, uint32_t packets_sent, uint32_t block_size)= 0;
+    virtual void nodeDiscovered(din_t din, link_t link) = 0;
+    virtual void nodeConnectedToNetwork(din_t sid, din_t din) = 0;
 };
 
 class DaaSEvent
@@ -163,10 +228,12 @@ typedef struct
     uint32_t form;          // data formatting model
     uint32_t codec;         // data encryption level
 
-    bool accept_all_requests; // ENABLE code to call unknowDIN()
+    uint8_t accept_request_policy; // ENABLE code to call unknowDIN()
 
     int64_t  oCap_i;        // ATS
     uint64_t  on_time; // time since power on (ms)
+
+    bool discovery_state;
 
     // Availabe data ??
 } nodestate_t;
@@ -174,63 +241,5 @@ typedef struct
 typedef Vector<int> list_element;
 typedef Vector<din_t> dinlist_t;      /// Node API !!!!!!!!!!!!!!
 typedef Vector<typeset_t> tsetlist_t; /// Node API !!!!!!!!!!!!!!
-
-enum syscode_t
-{
-    ___undefined = 0,
-
-    _cor_dme_sended,
-    _cor_dme_received,
-
-    _cor_rx_buffer,
-    _cor_tx_buffer,
-
-    // ATS
-    _ats_delta_avg,
-    _ats_sync_counter,
-    _ats_msg_decoded,
-    _ats_msg_encoded,
-};
-
-/* DRIVER TYPES */
-typedef enum : unsigned // Supported communications technologies
-{
-    _LINK_NONE = 0, // ND
-    _LINK_DAAS,     // DaaS routing & loopback
-    _LINK_INET4,    // Inet/IP
-    _LINK_BT, // Bluetooth
-    _LINK_MQTT5,    // MQTT
-    _LINK_UART,     // Serial line
-    _LINK_RAW
-} link_t;
-
-typedef enum
-{
-    PERFORM_CORE_THREAD = 0,
-    PERFORM_CORE_NO_THREAD
-} performs_mode_t;
-
-typedef enum
-{
-    ERROR_NONE = 0,
-    ERROR_CORE_ALREADY_INITIALIZED, //Modified from ERROR_ALREADY_INITIALIZED to avoid windows.h conflicts
-    ERROR_CORE_STOPPED,
-    ERROR_CANNOT_INITIALIZE,
-    ERROR_CANNOT_CREATE_NODE,
-    ERROR_DIN_ALREADY_EXIST,
-    ERROR_CANNOT_MAP_NODE,
-    ERROR_INVALID_USER_TYPESET,
-    ERROR_SEND_DDO,
-    ERROR_NO_DDO_PRESENT,
-    ERROR_DIN_UNKNOWN,
-    ERROR_CHANNEL_FAILURE,
-    ERROR_ATS_NOT_SYNCED,
-    // core
-    ERROR_INVALID_DME,
-    ERROR_THREADS_ALREADY_STARTED,
-    ERROR_NOT_IMPLEMENTED,
-    ERROR_UNKNOWN
-
-} daas_error_t;
 
 #endif // !_DAAS_TYPES_H__
