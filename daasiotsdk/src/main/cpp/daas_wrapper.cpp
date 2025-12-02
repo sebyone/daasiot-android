@@ -109,9 +109,8 @@ nodestate_t* DaasWrapper::statusCopy(din_t din) {
     nodestate_t* copy = new nodestate_t(ns);
     return copy;
 }
-nodestate_t* DaasWrapper::fetchCopy(din_t din, uint16_t opts, int &outErr) {
+nodestate_t* DaasWrapper::fetchCopy(din_t din, uint16_t opts) {
     const nodestate_t& ns = daas_.fetch(din, opts);
-    outErr = static_cast<int>(ERROR_NONE); // adjust if real API returns errors differently
     nodestate_t* copy = new nodestate_t(ns);
     return copy;
 }

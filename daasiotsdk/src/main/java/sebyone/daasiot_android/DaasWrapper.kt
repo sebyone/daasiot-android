@@ -46,19 +46,20 @@ object DaasWrapper {
 
     private external fun nativeUse(ptr: Long, din: Int): Boolean
     private external fun nativeEnd(ptr: Long, din: Int): Boolean
-    private external fun nativeSend(ptr: Long, din: Int, data: ByteArray, size: Int): Int
+    private external fun nativeSend(ptr: Long, din: Int, data: ByteArray): Int
     private external fun nativeReceived(ptr: Long, din: Int): Int
-    private external fun nativeReceive(ptr: Long, din: Int, data: ByteArray, maxSize: Int): Int
+    private external fun nativeReceive(ptr: Long, din: Int, data: ByteArray): Int
 
-    private external fun nativeListTypesetsCopy(ptr: Long): Long
+    // TODO: Implement this function when possible.
+    // private external fun nativeListTypesetsCopy(ptr: Long): Long
     private external fun nativePull(ptr: Long, din: Int): Long
     private external fun nativePush(ptr: Long, din: Int, ddoPtr: Long): Int
-    private external fun nativeAvailablesPull(ptr: Long, din: Int): Int
+    private external fun nativeAvailablesPull(ptr: Long, din: Int): IntArray
     private external fun nativeAddTypeset(ptr: Long, typesetCode: Int, typesetSize: Int): Int
 
     private external fun nativeFrisbee(ptr: Long, din: Int): Int
 
-//    TODO: Implement when readu
+//    TODO: Implement when ready
 //    private external fun nativeFrisbeeICMP(ptr: Long, din: Int, timeout: Int, retry: Int): Int
 //    private external fun nativeFrisbeeDPerf(ptr: Long, din: Int, senderTotal: Int, blockSize: Int, period: Int): Int
 //    private external fun nativeGetFrisbeeDPerfResult(ptr: Long): Long
@@ -103,14 +104,15 @@ object DaasWrapper {
 
     fun use(ptr: Long, din: Int): Boolean = nativeUse(ptr, din)
     fun end(ptr: Long, din: Int): Boolean = nativeEnd(ptr, din)
-    fun send(ptr: Long, din: Int, data: ByteArray, size: Int): Int = nativeSend(ptr, din, data, size)
+    fun send(ptr: Long, din: Int, data: ByteArray): Int = nativeSend(ptr, din, data)
     fun received(ptr: Long, din: Int): Int = nativeReceived(ptr, din)
-    fun receive(ptr: Long, din: Int, data: ByteArray, maxSize: Int): Int = nativeReceive(ptr, din, data, maxSize)
+    fun receive(ptr: Long, din: Int, data: ByteArray): Int = nativeReceive(ptr, din, data)
 
-    fun listTypesets(ptr: Long): Long = nativeListTypesetsCopy(ptr)
+    // TODO: Implement when ready
+    // fun listTypesets(ptr: Long): Long = nativeListTypesetsCopy(ptr)
     fun pull(ptr: Long, din: Int): Long = nativePull(ptr, din)
     fun push(ptr: Long, din: Int, ddoPtr: Long): Int = nativePush(ptr, din, ddoPtr)
-    fun availablesPull(ptr: Long, din: Int): Int = nativeAvailablesPull(ptr, din)
+    fun availablesPull(ptr: Long, din: Int): IntArray = nativeAvailablesPull(ptr, din)
     fun addTypeset(ptr: Long, typesetCode: Int, typesetSize: Int): Int = nativeAddTypeset(ptr, typesetCode, typesetSize)
 
     fun frisbee(ptr: Long, din: Int): Int = nativeFrisbee(ptr, din)

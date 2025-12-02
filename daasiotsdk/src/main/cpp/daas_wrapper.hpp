@@ -49,7 +49,7 @@ public:
     // returns pointer to nodestate_t copy (caller frees)
     nodestate_t* statusCopy(din_t din);
     // fetch: returns pointer copy and int status
-    nodestate_t* fetchCopy(din_t din, uint16_t opts, int &outErr);
+    nodestate_t* fetchCopy(din_t din, uint16_t opts);
 
 //    TODO: wait for the library implementation
     /*bool setATSMaxError(int32_t error);*/
