@@ -25,18 +25,28 @@ include_directories(
 # ----------------------------
 # Detect Android ABI
 # ----------------------------
-message(STATUS "Current Android ABI: ${ANDROID_ABI}")
+# message(STATUS "Current Android ABI: ${ANDROID_ABI}")
 
 # ----------------------------
 # Define the path for the static library based on ABI
 # ----------------------------
-set(DAAS_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libdaas.a)
+# set(DAAS_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libdaas.a)
+set(DAAS_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/arm64-v8a/libdaas.a)
 
-if(NOT EXISTS ${DAAS_LIB_PATH})
-    message(FATAL_ERROR "libdaas.a not found for ABI: ${ANDROID_ABI} at ${DAAS_LIB_PATH}")
+# ----------------------------
+# Force build only for arm64-v8a
+# ----------------------------
+set(ANDROID_ABI arm64-v8a)
+
+if(NOT ANDROID_ABI STREQUAL "arm64-v8a")
+    message(FATAL_ERROR "This library supports only arm64-v8a")
 endif()
 
-message(STATUS "Using libdaas.a from: ${DAAS_LIB_PATH}")
+# if(NOT EXISTS ${DAAS_LIB_PATH})
+#     message(FATAL_ERROR "libdaas.a not found for ABI: ${ANDROID_ABI} at ${DAAS_LIB_PATH}")
+# endif()
+
+# message(STATUS "Using libdaas.a from: ${DAAS_LIB_PATH}")
 
 # ----------------------------
 # Add JNI C++ Source Files
@@ -55,11 +65,14 @@ set_target_properties(daas PROPERTIES
         IMPORTED_LOCATION ${DAAS_LIB_PATH}
 )
 
-# ----------------------------
-# Compiler Settings
-# ----------------------------
-set(CMAKE_CXX_STANDARD 17)
+# -------------------------------------------------
+# C++ standard (REQUIRED by DaaS R0.21.3)
+# -------------------------------------------------
+set(CMAKE_C_STANDARD 20)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_ANDROID_NATIVE_API_LEVEL 30)
 
 # ----------------------------
 # Link everything

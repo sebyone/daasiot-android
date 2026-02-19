@@ -14,9 +14,9 @@ object DaasWrapper {
     private external fun nativeGetBuildInfo(ptr: Long): String
     private external fun nativeListAvailableDrivers(ptr: Long): String
 
-    private external fun nativeDoInit(ptr: Long, sid: Int, din: Int): Int
+    private external fun nativeInit(sid: Long, din: Long): Int
     private external fun nativeDoEnd(ptr: Long): Int
-    private external fun nativeDoReset(ptr: Long): Int
+    private external fun nativeReset(): Int
     private external fun nativeDoPerform(ptr: Long, mode: Int): Int
 
     private external fun nativeEnableDriver(ptr: Long, driverId: Int, localUri: String): Int
@@ -72,9 +72,9 @@ object DaasWrapper {
     fun getBuildInfo(ptr: Long): String = nativeGetBuildInfo(ptr)
     fun listAvailableDrivers(ptr: Long): String = nativeListAvailableDrivers(ptr)
 
-    fun doInit(ptr: Long, sid: Int, din: Int): Int = nativeDoInit(ptr, sid, din)
+    fun doInit(sid: Long, din: Long): Int = nativeInit(sid, din)
     fun doEnd(ptr: Long): Int = nativeDoEnd(ptr)
-    fun doReset(ptr: Long): Int = nativeDoReset(ptr)
+    fun reset(): Int = nativeReset()
     fun doPerform(ptr: Long, mode: Int): Int = nativeDoPerform(ptr, mode)
 
     fun enableDriver(ptr: Long, driverId: Int, localUri: String): Int = nativeEnableDriver(ptr, driverId, localUri)

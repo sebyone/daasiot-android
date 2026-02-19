@@ -180,6 +180,17 @@ Java_sebyone_daasiot_1android_DaasWrapper_nativeInit(
 
 extern "C"
 JNIEXPORT jint JNICALL
+        Java_sebyone_daasiot_1android_DaasWrapper_nativeReset(
+        JNIEnv*, jclass) {
+
+LOGD("[DaaS] Resetting Node... Node will be disconnected from the network");
+auto err = g_daas->doReset();
+LOGD("[DaaS] doReset() -> %d", err);
+return err;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
 Java_sebyone_daasiot_1android_DaasWrapper_nativeEnableDriver(
         JNIEnv* env, jclass, jstring uri) {
 
