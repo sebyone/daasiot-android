@@ -33,6 +33,10 @@ include_directories(
 # set(DAAS_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libdaas.a)
 set(DAAS_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/arm64-v8a/libdaas.a)
 
+# libdaas.a now statically links a BLE driver (drv_ble.cpp) that depends on SimpleBLE
+# (https://github.com/OpenBluetoothToolbox/SimpleBLE). See PROVENANCE.md for where this came from.
+set(SIMPLEBLE_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/arm64-v8a/libsimpleble.a)
+
 # ----------------------------
 # Force build only for arm64-v8a
 # ----------------------------
@@ -52,8 +56,11 @@ endif()
 # Add JNI C++ Source Files
 # ----------------------------
 add_library(${LIB_NAME} SHARED
-        daas_jni.cpp
-        daas_wrapper.cpp
+        control/JavaBridge.cpp
+        control/JniHelpers.cpp
+        control/DaasAPINative.cpp
+        events/DaasEvents.cpp
+        transfer/DDONative.cpp
 )
 
 # ----------------------------
@@ -63,6 +70,15 @@ add_library(daas STATIC IMPORTED)
 
 set_target_properties(daas PROPERTIES
         IMPORTED_LOCATION ${DAAS_LIB_PATH}
+)
+
+# ----------------------------
+# Create imported target for libsimpleble.a
+# ----------------------------
+add_library(simpleble STATIC IMPORTED)
+
+set_target_properties(simpleble PROPERTIES
+        IMPORTED_LOCATION ${SIMPLEBLE_LIB_PATH}
 )
 
 # -------------------------------------------------
@@ -80,5 +96,6 @@ set(CMAKE_ANDROID_NATIVE_API_LEVEL 30)
 target_link_libraries(
         ${LIB_NAME}
         daas
+        simpleble
         ${log-lib}
 )

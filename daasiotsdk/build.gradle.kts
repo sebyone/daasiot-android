@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "sebyone.daasiot"
-version = "0.0.2"
+version = "0.2.0"
 
 android {
     namespace = "sebyone.daasiot_android"
@@ -22,6 +22,11 @@ android {
             abiFilters.add("arm64-v8a")
 
         }
+
+        // Bundled into the AAR and applied automatically by any consuming app that enables R8/
+        // minification - see consumer-rules.pro for why this is required (JNI resolves classes
+        // and members by exact name, invisibly to R8's static analysis).
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     // ✅ New AGP 8+ locations for targetSdk
@@ -61,10 +66,6 @@ android {
         }
     }
 
-    buildFeatures {
-        viewBinding = true
-    }
-
     // ✅ Modern output naming for AGP 8+
     publishing {
         singleVariant("release")
@@ -91,10 +92,6 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

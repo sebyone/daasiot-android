@@ -6,7 +6,11 @@ Release Process
  3. Update version number in `README.md` file.
  4. Commit: `git commit -am "Prepare version X.Y.Z."`
  5. Tag: `git tag -a vX.Y.Z -m "Version X.Y.Z"`
- 6. Release: `./gradlew clean assemble uploadArchives`
+ 6. Release:
+    - Today: `./gradlew clean :daasiotsdk:assembleRelease` and copy the renamed `.aar` from
+      `daasiotsdk/build/outputs/aar/` per [README.md](README.md#installation).
+    - Once published to Maven Central: `./gradlew :daasiotsdk:publishToMavenCentral` — see
+      [PUBLISHING.md](PUBLISHING.md) for the one-time setup this requires.
  7. Update version number in `build.gradle.kts` file to next "SNAPSHOT" version.
  8. Commit: `git commit -am "Prepare next development version."`
  9. Push: `git push && git push --tags`

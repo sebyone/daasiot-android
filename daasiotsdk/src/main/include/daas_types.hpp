@@ -1,5 +1,5 @@
 /*
- * DaaS-IoT 2019, 2025 (@) Sebyone Srl
+ * DaaS-IoT 2019, 2026 (@) Sebyone Srl
  *
  * File: daas-types.h
  *
@@ -30,7 +30,7 @@
  * Contributors:
  * plogiacco@smartlab.it - initial design, implementation and documentation
  * sebastiano.meduri@gmail.com  - initial design, implementation and documentation
- * l.grillo@sebyone.com  - implementation and documentation
+ * l.grillo@sebyone.it  - implementation and documentation
  *
  */
 
@@ -43,6 +43,8 @@ typedef uint64_t stime_t;     // Time-stamp absolute date (64bit) !!!!!!!!!!!!!!
 typedef uint64_t din_t;       // DIN (64bit, 0 NULL,  )
 typedef uint16_t typeset_t;   // Typeset (16bit)
 
+using typeset_fun = void(*)(din_t);
+
 enum syscode_t
 {
     ___undefined = 0,
@@ -51,14 +53,18 @@ enum syscode_t
     _cor_dme_received,
     _cor_dme_routed,
 
-    _cor_rx_buffer,
-    _cor_tx_buffer,
+    _cor_rx_buffer_count,
+    _cor_tx_buffer_count,
+
+    _cor_rx_buffer_size,
+    _cor_tx_buffer_size,
 
     // ATS
     _ats_delta_avg,
     _ats_sync_counter,
     _ats_msg_decoded,
     _ats_msg_encoded,
+
 };
 
 /* DRIVER TYPES */
@@ -67,10 +73,14 @@ typedef enum : unsigned // Supported communications technologies
     _LINK_NONE = 0, // ND
     _LINK_DAAS,     // DaaS routing & loopback
     _LINK_INET4,    // Inet/IP
-    _LINK_BT, // Bluetooth
+    _LINK_LORA,     // LoRa
+    _LINK_BLE,      // BLE
     _LINK_MQTT5,    // MQTT
     _LINK_UART,     // Serial line
-    _LINK_RAW
+    _LINK_ZIGBEE,   // Zigbee
+    _LINK_RAW,
+    _LINK_LEGACY,  // Legacy driver (TUN/TAP)
+    MAX_LINKS
 } link_t;
 
 typedef enum
@@ -78,6 +88,80 @@ typedef enum
     PERFORM_CORE_THREAD = 0,
     PERFORM_CORE_NO_THREAD
 } performs_mode_t;
+
+typedef enum : uint8_t
+{
+    discovery_off = 0,
+    discovery_sender_only,
+    discovery_receiver_only,
+    discovery_full
+
+} discovery_state_t;
+
+typedef enum : uint8_t
+{
+    ddo_policy_skip_on_failure = 0,
+
+    // retry immediately (always)
+    ddo_policy_retry_on_failure,
+    //ddo_policy_retry_with_alternate_route_on_failure,
+
+    // retry with exponential wait time
+    ddo_policy_exponential_backoff_retry_on_failure,
+    //ddo_policy_exponential_backoff_retry_with_alternate_route_on_failure
+
+} ddo_policy_t;
+
+typedef enum : uint8_t 
+{
+    option_set_ddo_rx_buffer_size,
+    option_set_ddo_tx_buffer_size,
+    option_set_rt_buffer_size,
+    option_set_max_ddo_retry,
+    option_enable_auto_route_on_push_failure,    //ROUTE() Implementation: if enabled, the node will automatically attempt to route a packet to the destination if a push operation fails due to the destination being unreachable
+    option_set_route_timeout,                    //ROUTE() Implementation: time (in ms) to wait for a response to a route request before considering the route request failed and, if auto_route_on_push_failure is enabled, attempting to route the packet through an alternate path   
+    option_set_route_ttl,                        //ROUTE() Implementation: time-to-live (in ms) for a route, i.e. the maximum amount of time that a route can be used for routing packets before it is considered stale and a new route discovery process is triggered
+    option_set_packet_status_queue_size,         //ROUTE() Implementation: size of the queue used to store the status of packets that are being routed
+
+    option_set_fetch_timeout,                   //FTC() Implementation: time (in ms) to wait for a response to a fetch request before considering the fetch request failed
+
+}option_t;
+
+typedef enum : uint8_t
+{
+    packet_state_sent = 0,    //ROUTE() Implementation: packet has been sent
+    packet_state_delegated,   //ROUTE() Implementation: packet has been delegated to another node for routing (e.g. in case of auto-routing or routing to unreachable nodes)
+    packet_state_inqueue,     //ROUTE() Implementation: packet is in the routing queue, waiting to be sent
+    packet_state_error,       //ROUTE() Implementation: an error occurred during the routing process (e.g. route discovery failed, route request timed out, etc.)
+} packet_state_t;
+
+struct packet_status_t
+{
+    din_t din;
+    uint8_t state;
+    uint8_t error;
+};
+
+#define flag_trust_mapped  (1 << 0)
+#define flag_trust_same_network  (1 << 1)
+#define flag_trust_routed      (1 << 2)
+#define flag_trust_all  ((uint8_t)(~(1 << 8)))
+
+typedef enum : uint8_t
+{
+    trust_none = 0,
+    trust_mapped_only = flag_trust_mapped,
+    trust_mapped_and_same_network  = flag_trust_mapped | flag_trust_same_network,
+    trust_mapped_and_routed = flag_trust_mapped | flag_trust_routed,
+    trust_mapped_and_routed_and_same_network = flag_trust_mapped | flag_trust_routed | flag_trust_same_network,
+    trust_all  = flag_trust_all,
+} accept_request_policy_t;
+
+enum stream_type : uint8_t {
+    STREAM_OPEN,
+    STREAM_DATA,
+    STREAM_CLOSE
+};
 
 typedef enum
 {
@@ -95,10 +179,14 @@ typedef enum
     ERROR_CHANNEL_FAILURE,
     ERROR_ATS_NOT_SYNCED,
     ERROR_DISCOVERY_DISABLED,
+    ERROR_POLICY_STRICT_ENABLED,
     // core
     ERROR_INVALID_DME,
     ERROR_THREADS_ALREADY_STARTED,
     ERROR_NOT_IMPLEMENTED,
+    ERROR_TX_QUEUE_FULL,
+    ERROR_TIMEOUT_NOT_EXPIRED,
+    ERROR_ROUTE_NOT_FOUND,          //ROUTE() Implementation: no route found to the destination
     ERROR_UNKNOWN
 
 } daas_error_t;
@@ -169,27 +257,81 @@ public:
     const T& operator[](uint32_t index) const;
 
     void clear();    
+    void full_clear();
+    Vector(const Vector<T> &other);
+    Vector<T> &operator=(const Vector<T> &other);
 };
 
+/**
+    @details Interface used to implement event handlers for DaaS API events. The functions are
+    called by the DaaS API library when specific events occur, allowing the user to define
+    custom behavior in response to these events.
+ */
 class IDaasApiEvent
 {
 public:
     virtual ~IDaasApiEvent() = default;
+    /**
+        @details Called when a din is accepted by the node (incoming request).
+        @param din The din that has been accepted.
+    */
     virtual void dinAccepted(din_t) = 0;
+    /**
+        @details Called when a new DDO is received.
+        @param payload_size Size of the received payload.
+        @param typeset Typeset of the received DDO.
+        @param din DIN of the sender node.
+    */
     virtual void ddoReceived(int payload_size, typeset_t, din_t) = 0;
+    /**
+        @details Called when a frisbee message is received.
+        @param din The din of the node that sent the frisbee message.
+     */
     virtual void frisbeeReceived(din_t) = 0;
+    /**
+        @details Called when a node state message is received.
+        @param din The din of the node whose state has been received.
+     */
     virtual void nodeStateReceived(din_t) = 0;
+    /**
+        @details Called when ATS synchronization is completed.
+        @param din The din of the node that has completed ATS synchronization.
+     */
     virtual void atsSyncCompleted(din_t) = 0;
-    virtual void frisbeeDperfCompleted(din_t, uint32_t packets_sent, uint32_t block_size)= 0;
-    virtual void nodeDiscovered(din_t din, link_t link) = 0;
-    virtual void nodeConnectedToNetwork(din_t sid, din_t din) = 0;
-};
+    /**
+        @details Called when a frisbee dperf operation is completed.
+        @param din The din of the node that completed the frisbee dperf.
+        @param packets_sent Number of packets sent during the dperf operation.
+        @param block_size Size of each data block sent.
 
-class DaaSEvent
-{
-public:
-    virtual ~DaaSEvent() = default;
-    virtual int daasEvent(int, int, int, int) = 0;
+        @note To get detailed results, refer to the dperf_info_result structure returned by
+            @ref DaasAPI::getFrisbeeResultDPERF().
+     */
+    virtual void frisbeeDperfCompleted(din_t, uint32_t packets_sent, uint32_t block_size)= 0;
+    /**
+        @details Called when a new network is discovered.
+        @param din The sid of the newly discovered network.
+        @param link The link through which the network was discovered.
+    */
+    virtual void networkDiscovered(din_t din, din_t sid, link_t link) = 0;
+
+    /**
+        @details Called when this node connects to a DaaS network.
+        @param sid The SID of the connected network.
+        @param din The update DIN of this node used inside the network.
+    */
+    virtual void nodeConnectedToNetwork(din_t sid, din_t din) = 0;
+
+    /**
+        @details Called when a stream information is received. 
+        @param din The din of the node that sent the stream information.
+        @param pkt_type The type of the packet received:
+           (1) - STREAM_OPEN: indicates that a stream open request has been received.
+           (2) - STREAM_DATA: indicates that a stream data packet has been received.
+           (3) - STREAM_CLOSE: indicates that a stream close request has been received.
+        @param stream_id The ID of the stream associated with the received packet.
+     */
+    virtual void streamInfoReceived(din_t din, stream_type pkt_type, uint32_t stream_id) = 0;
 };
 
 // Interface used to implement device specific storage handler to backup/restore 
@@ -218,28 +360,67 @@ struct dperf_info_result {
 
 typedef struct
 {
-    stime_t lasttime;       // time reference
-    uint32_t hwver;         // platform (hard-coded)
-    uint32_t linked;        // channels counter (0=not linked)
-    uint32_t in_sync;          // synchronization status (0=not in sync)
-    uint32_t lock;          // required security policy
-    uint8_t sklen;    // security phrase lenght
-    uint8_t skey[14]; // security phrase (UTF-8)
-    uint32_t form;          // data formatting model
-    uint32_t codec;         // data encryption level
+    uint64_t  power_on_time;  // time since power on (ms)
+    uint32_t linked;          // channels counter (0=not linked)
+    uint32_t lock;            // required security policy
+    uint8_t sklen;            // security phrase lenght
+    uint8_t skey[14];         // security phrase (UTF-8)
+    
+    accept_request_policy_t accept_request_policy;
 
-    uint8_t accept_request_policy; // ENABLE code to call unknowDIN()
+    din_t sid;
+    din_t din;
+    
+    ddo_policy_t ddo_policy;
+    discovery_state_t discovery_state;
 
-    int64_t  oCap_i;        // ATS
-    uint64_t  on_time; // time since power on (ms)
+    int64_t  oCap_net;        // ATS on network offset
+    bool net_in_sync;         // synchronization status (0=not in sync)
 
-    bool discovery_state;
+} node_info_t;
 
-    // Availabe data ??
-} nodestate_t;
+enum feature_t : uint16_t {
+    STORAGE = (1 << 0),        // Node supports storage features
+    COMPUTE = (1 << 1),        // Node supports compute features
+    MAX_FEATURE = COMPUTE,
+};
+
+enum feature_action_e : uint8_t {
+    feature_storage_retrieve_blob = 0,
+    feature_storage_send_blob,
+    features_storage_find_blob,
+    feature_storage_register_blob,
+    none
+};
+
+struct node_network_info_t
+{
+    din_t sid;         
+    din_t din;         
+};
+
+struct node_map_entry_t
+{
+    din_t din;
+    din_t channel_owner;
+    link_t link;
+    char uri[256];
+    bool direct_channel;
+};
+
+struct feature_rq_t
+{
+    feature_t feature;
+    feature_action_e request;
+    uint8_t params[16]; // Optional parameters for the feature request
+    uint8_t payload[128];
+};
 
 typedef Vector<int> list_element;
-typedef Vector<din_t> dinlist_t;      /// Node API !!!!!!!!!!!!!!
-typedef Vector<typeset_t> tsetlist_t; /// Node API !!!!!!!!!!!!!!
+typedef Vector<node_network_info_t> network_info_list_t;      /// Node API !!!!!!!!!!!!!!
+typedef Vector<node_map_entry_t> node_map_list_t;
+typedef Vector<typeset_t> typeset_list; /// Node API !!!!!!!!!!!!!!
+typedef Vector<feature_t> features_list; /// Node API !!!!!!!!!!!!!!
+
 
 #endif // !_DAAS_TYPES_H__
