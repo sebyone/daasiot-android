@@ -29,8 +29,9 @@
 *
 * Contributors:
 * plogiacco@smartlab.it - initial design, implementation and documentation
-* sebastiano.meduri@gmail.com  - initial design, implementation and documentation
 * l.grillo@sebyone.it  - implementation and documentation
+* l.herrera@sebyone.it - refactoring
+* s.meduri@sebyone.it - initial design, implementation, documentation and refactoring
 *
 */
 
