@@ -24,4 +24,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Daasiot-android"
 include(":daasiotsdk")
+include(":daasiot-android-demo")
  
