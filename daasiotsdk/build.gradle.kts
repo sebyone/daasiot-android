@@ -1,10 +1,54 @@
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    id("com.vanniktech.maven.publish") version "0.34.0"
 }
 
-group = "sebyone.daasiot"
+group = "it.sebyone"
 version = "0.2.0"
+
+mavenPublishing {
+    configure(
+        AndroidSingleVariantLibrary(
+            variant = "release",
+            sourcesJar = true,
+            publishJavadocJar = true,
+        )
+    )
+
+    publishToMavenCentral()
+    signAllPublications()
+
+    coordinates("it.sebyone", "daasiot-android", version.toString())
+
+    pom {
+        name.set("Daas IoT Android SDK")
+        description.set("Kotlin/JNI wrapper around the native daas (libdaas) C++ core library for Android.")
+        url.set("https://github.com/sebyone/daasiot-android")
+        inceptionYear.set("2024")
+
+        licenses {
+            license {
+                name.set("Mozilla Public License 2.0")
+                url.set("https://www.mozilla.org/en-US/MPL/2.0/")
+            }
+        }
+        developers {
+            developer {
+                id.set("sebyone")
+                name.set("Sebyone Srl")
+                organization.set("Sebyone")
+            }
+        }
+        scm {
+            url.set("https://github.com/sebyone/daasiot-android")
+            connection.set("scm:git:https://github.com/sebyone/daasiot-android.git")
+            developerConnection.set("scm:git:ssh://git@github.com/sebyone/daasiot-android.git")
+        }
+    }
+}
 
 android {
     namespace = "sebyone.daasiot_android"
@@ -64,11 +108,6 @@ android {
             path = file("src/main/cpp/CMakeLists.txt")
             version = "3.22.1"
         }
-    }
-
-    // ✅ Modern output naming for AGP 8+
-    publishing {
-        singleVariant("release")
     }
 
 }
