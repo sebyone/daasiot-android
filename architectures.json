@@ -1,0 +1,55 @@
+{
+  "$schema": "https://daasiot.sebyone.it/schema/sdk-architectures-1.json",
+  "sdk": "android",
+  "display_name": "Android (daasiotsdk)",
+  "language": "Kotlin",
+  "package_name": "sebyone.daasiot:daasiotsdk",
+  "package_version": "0.2.0",
+  "daas_core_version": "0.22.0",
+  "license": "MPL-2.0",
+  "requires": {
+    "android_api": ">=30",
+    "kotlin": ">=2.2",
+    "jvm_target": "11"
+  },
+  "build_system": "Gradle (Android Library / AAR)",
+  "binding": "Kotlin/JNI (libdaas_jni.so + prebuilt libdaas.a per ABI; BLE via SimpleBLE)",
+  "distribution": [
+    { "channel": "aar", "available": true, "note": "Copy daasiotsdk-<version>-release.aar into the app's libs/." },
+    { "channel": "maven-central", "available": false, "note": "Not published yet; see PUBLISHING.md (namespace verification pending)." }
+  ],
+  "platforms": [
+    {
+      "os": "Android",
+      "arch": "arm64-v8a",
+      "status": "supported",
+      "toolchain": "Android NDK clang, ANDROID_PLATFORM 30",
+      "ci": false,
+      "notes": "Only ABI enabled in the Gradle build (abiFilters). libdaas.a ~0.22.0 + libsimpleble.a. assembleRelease verified."
+    },
+    {
+      "os": "Android",
+      "arch": "armeabi-v7a",
+      "status": "experimental",
+      "toolchain": "Android NDK clang",
+      "ci": false,
+      "notes": "Prebuilt libdaas.a present (0.20.1) but excluded from the build and out of sync with the headers; no libsimpleble.a."
+    },
+    {
+      "os": "Android",
+      "arch": "x86_64",
+      "status": "experimental",
+      "toolchain": "Android NDK clang",
+      "ci": false,
+      "notes": "Prebuilt libdaas.a present (0.20.1) but excluded from the build (used mainly for emulators); no libsimpleble.a."
+    }
+  ],
+  "runtime_dependencies": {
+    "android": ["Bluetooth permissions if the BLE driver is used", "INTERNET permission for IPv4 networking"]
+  },
+  "status_legend": {
+    "supported": "Built and validated; recommended for production.",
+    "experimental": "Prebuilt native present but not enabled/validated in the current build.",
+    "planned": "On the roadmap, not available yet."
+  }
+}
