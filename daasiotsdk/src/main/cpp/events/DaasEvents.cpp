@@ -44,9 +44,16 @@
 // so multiple DaasWrapper instances can coexist without clobbering each other's state.
 JavaVM* g_vm = nullptr;
 
+// SimpleBLE (statically linked via libsimpleble.a) drives Android BLE from native threads and needs
+// the JavaVM. Its Android backend exposes a global set_jvm(JavaVM*) that MUST be called from
+// JNI_OnLoad; without it, constructing the BLE driver aborts with
+// "JavaVM not set: call SimpleBLE::Advanced::Android::set_jvm(vm) from JNI_OnLoad".
+extern void set_jvm(JavaVM* jvm);
+
 extern "C"
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
     g_vm = vm;
+    set_jvm(vm);
     LOGD("JNI_OnLoad");
     return JNI_VERSION_1_6;
 }
