@@ -102,7 +102,7 @@ object DaasWrapper {
 
     private external fun nativeSyncNode(ptr: Long, din: Long, timezone: Int): NodeInfo
     private external fun nativeSyncNet(ptr: Long, din: Long, bubbleTime: Int): NodeInfo
-//    private external fun nativeSetATSMaxError(ptr: Long, error: Int)
+    private external fun nativeSetATSMaxError(ptr: Long, error: Int)
 
     private external fun nativeUse(ptr: Long, din: Long): Boolean
     private external fun nativeEnd(ptr: Long, din: Long): Boolean
@@ -241,7 +241,11 @@ object DaasWrapper {
 
     /** Sets the local system time on remote node [din] and synchronizes ATS. Not yet implemented upstream. */
     fun syncNet(ptr: Long, din: Long, bubbleTime: Int): NodeInfo = nativeSyncNet(ptr, din, bubbleTime)
-//    fun setATSMaxError(ptr: Long, error: Int) = nativeSetATSMaxError(ptr, error)
+
+    /** Relaxes the Absolute Time Sync tolerance (max error, ms) so time-sync-sensitive links (BLE)
+     *  stay connected. The previous JNI bridge called this after enableDriver; without it links can
+     *  drop with ERROR_ATS_NOT_SYNCED. */
+    fun setATSMaxError(ptr: Long, error: Int) = nativeSetATSMaxError(ptr, error)
 
     /** Blocking call: opens a real-time session with remote node [din]. */
     fun use(ptr: Long, din: Long): Boolean = nativeUse(ptr, din)

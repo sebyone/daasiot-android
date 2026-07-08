@@ -165,6 +165,17 @@ Java_sebyone_daasiot_1android_DaasWrapper_nativeEnableDriver(
 }
 
 extern "C"
+JNIEXPORT void JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeSetATSMaxError(
+        JNIEnv*, jclass, jlong handle, jint error) {
+
+    DaasAPI* api = toApi(handle);
+    if (!api) return;
+    LOGD("[DaaS] setATSMaxError(%d)", error);
+    api->setATSMaxError(error);
+}
+
+extern "C"
 JNIEXPORT jobject JNICALL
 Java_sebyone_daasiot_1android_DaasWrapper_nativeDoEnd(
         JNIEnv* env, jclass, jlong handle) {
