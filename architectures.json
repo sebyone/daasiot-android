@@ -3,7 +3,7 @@
   "sdk": "android",
   "display_name": "Android (daasiotsdk)",
   "language": "Kotlin",
-  "package_name": "sebyone.daasiot:daasiotsdk",
+  "package_name": "it.sebyone:daasiot-android",
   "package_version": "0.2.0",
   "daas_core_version": "0.22.0",
   "license": "MPL-2.0",
@@ -15,8 +15,8 @@
   "build_system": "Gradle (Android Library / AAR)",
   "binding": "Kotlin/JNI (libdaas_jni.so + prebuilt libdaas.a per ABI; BLE via SimpleBLE)",
   "distribution": [
-    { "channel": "aar", "available": true, "note": "Copy daasiotsdk-<version>-release.aar into the app's libs/." },
-    { "channel": "maven-central", "available": false, "note": "Not published yet; see PUBLISHING.md (namespace verification pending)." }
+    { "channel": "maven-central", "available": true, "note": "implementation(\"it.sebyone:daasiot-android:0.2.0\")" },
+    { "channel": "aar", "available": true, "note": "Copy daasiotsdk-<version>-release.aar into the app's libs/." }
   ],
   "platforms": [
     {

@@ -6,8 +6,8 @@ sessions and negotiating features — through a typed, idiomatic Kotlin API.
 
 | | |
 |---|---|
-| **Library (AAR)** | `daasiotsdk` |
-| **Coordinates** | `sebyone.daasiot:daasiotsdk:0.2.0` |
+| **Coordinates** | `it.sebyone:daasiot-android:0.2.0` |
+| **Library (AAR)** | `daasiotsdk` (Gradle module / AAR filename) |
 | **Package** | `sebyone.daasiot_android` |
 | **DaaS-IoT core** | `v0.22.0` |
 | **Android** | API level **30+** · Kotlin 2.2+ |

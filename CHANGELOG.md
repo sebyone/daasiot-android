@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.3] - 2026-07-17
+
+## libdaas Version 0.22.0
+
+### Changed
+- Updated ATS maximum-error handling and BLE support.
+- Updated the native event bridge implementation.
+- Updated installation, API reference, and architecture documentation.
+- Prepared Android SDK publication metadata for version `0.2.3`.
+
+---
+
 ## [0.2.0] - 2026-07-03
 
 ## libdaas Version 0.22.0
