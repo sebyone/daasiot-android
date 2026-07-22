@@ -77,6 +77,8 @@ object DaasWrapper {
 
     private external fun nativeStoreConfiguration(ptr: Long, depotPtr: Long): Boolean
     private external fun nativeLoadConfiguration(ptr: Long, depotPtr: Long): Boolean
+    private external fun nativeStoreConfigurationDirectory(ptr: Long, directory: String): Boolean
+    private external fun nativeLoadConfigurationDirectory(ptr: Long, directory: String): Boolean
     private external fun nativeDoStatisticsReset(ptr: Long): Boolean
     private external fun nativeGetSystemStatistics(ptr: Long, code: Int): Long
 
@@ -118,6 +120,8 @@ object DaasWrapper {
     private external fun nativeAddTypeset(ptr: Long, typesetCode: Int): DaasError
 
     private external fun nativeFrisbee(ptr: Long, din: Long): DaasError
+    private external fun nativeFrisbeeICMP(ptr: Long, din: Long, timeoutMillis: Long, retry: Long): DaasError
+    private external fun nativeFrisbeeDPERF(ptr: Long, din: Long, packets: Long, blockSize: Long, tripPeriod: Long): DaasError
 
     private external fun nativeSetDDOPolicy(ptr: Long, policy: DDOPolicy): DaasError
     private external fun nativeCreateNetwork(ptr: Long): DaasError
@@ -178,6 +182,8 @@ object DaasWrapper {
 
     fun storeConfiguration(ptr: Long, depotPtr: Long): Boolean = nativeStoreConfiguration(ptr, depotPtr)
     fun loadConfiguration(ptr: Long, depotPtr: Long): Boolean = nativeLoadConfiguration(ptr, depotPtr)
+    fun storeConfiguration(ptr: Long, directory: java.io.File): Boolean = nativeStoreConfigurationDirectory(ptr, directory.absolutePath)
+    fun loadConfiguration(ptr: Long, directory: java.io.File): Boolean = nativeLoadConfigurationDirectory(ptr, directory.absolutePath)
     fun doStatisticsReset(ptr: Long): Boolean = nativeDoStatisticsReset(ptr)
     fun getSystemStatistics(ptr: Long, code: Int): Long = nativeGetSystemStatistics(ptr, code)
 
@@ -279,6 +285,10 @@ object DaasWrapper {
 
     /** Pings remote node [din] to check its availability. */
     fun frisbee(ptr: Long, din: Long): DaasError = nativeFrisbee(ptr, din)
+    fun frisbeeICMP(ptr: Long, din: Long, timeoutMillis: Long = 1000, retry: Long = 3): DaasError =
+        nativeFrisbeeICMP(ptr, din, timeoutMillis, retry)
+    fun frisbeeDPERF(ptr: Long, din: Long, packets: Long = 10, blockSize: Long = 1024 * 1024, tripPeriod: Long = 0): DaasError =
+        nativeFrisbeeDPERF(ptr, din, packets, blockSize, tripPeriod)
 //    fun frisbeeICMP(ptr: Long, din: Int, timeout: Int, retry: Int): Int = nativeFrisbeeICMP(ptr, din, timeout, retry)
 //    fun frisbeeDPerf(ptr: Long, din: Int, senderTotal: Int = 10, blockSize: Int = 1024*1024, period: Int = 0): Int =
 //        nativeFrisbeeDPerf(ptr, din, senderTotal, blockSize, period)

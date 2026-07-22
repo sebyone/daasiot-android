@@ -1,0 +1,1 @@
+{"examples":[{"id":"sender","entry":"sender-receiver/Sender.kt","config":"sender-receiver/sender.json"},{"id":"receiver","entry":"sender-receiver/Receiver.kt","config":"sender-receiver/receiver.json"},{"id":"compose-demo","entry":"../daasiot-android-demo"}]}

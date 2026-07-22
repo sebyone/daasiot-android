@@ -1,0 +1,33 @@
+name: Verify Android SDK
+
+on:
+  push:
+    branches: [prototyping]
+  pull_request:
+    branches: [prototyping]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - name: Install Android native toolchain
+        run: sdkmanager 'platforms;android-36' 'ndk;27.0.12077973' 'cmake;3.22.1'
+      - name: Build native bridge, test Kotlin layer and assemble AAR
+        run: ./gradlew --no-daemon :daasiotsdk:externalNativeBuildDebug :daasiotsdk:testDebugUnitTest :daasiotsdk:assembleRelease
+      - name: Upload AAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: daasiot-android-aar
+          path: daasiotsdk/build/outputs/aar/*.aar
+          if-no-files-found: error

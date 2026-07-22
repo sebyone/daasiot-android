@@ -35,10 +35,29 @@
 #include "../include/daasiot_jni.hpp"
 
 #include <android/log.h>
+#include <filesystem>
+#include <fstream>
 #include <vector>
 
 #define LOG_TAG "DaaS-Native"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+
+namespace {
+class DirectoryDepot final : public IDepot {
+public:
+    explicit DirectoryDepot(std::string directory) : directory_(std::move(directory)) {}
+    bool open(bool read) override { if(!read)std::filesystem::create_directories(directory_);return !read||std::filesystem::is_directory(directory_); }
+    bool close() override { return true; }
+    bool clearSpace() override { if(std::filesystem::is_directory(directory_))for(const auto&e:std::filesystem::directory_iterator(directory_))if(e.path().extension()==".bin")std::filesystem::remove(e.path());return true; }
+    bool getSpaceInfo() override { return true; }
+    bool trash(unsigned key) override { std::error_code ec;std::filesystem::remove(path(key),ec);return !ec; }
+    unsigned save(unsigned key,unsigned char*data,unsigned size) override { std::filesystem::create_directories(directory_);auto target=path(key),temp=target;temp+=".tmp";std::ofstream out(temp,std::ios::binary|std::ios::trunc);if(!out)return 0;out.write(reinterpret_cast<char*>(data),size);out.close();std::error_code ec;std::filesystem::rename(temp,target,ec);if(ec){std::filesystem::remove(target,ec);ec.clear();std::filesystem::rename(temp,target,ec);}return ec?0:size; }
+    unsigned load(unsigned key,unsigned char*data,unsigned maximum) override { std::ifstream in(path(key),std::ios::binary);if(!in)return 0;in.read(reinterpret_cast<char*>(data),maximum);return static_cast<unsigned>(in.gcount()); }
+private:
+    std::filesystem::path path(unsigned key)const{return std::filesystem::path(directory_)/(std::to_string(key)+".bin");}
+    std::string directory_;
+};
+}
 
 /* ---------------- Info / strings ---------------- */
 
@@ -93,6 +112,30 @@ Java_sebyone_daasiot_1android_DaasWrapper_nativeListAvailableDrivers(
 }
 
 } // extern "C"
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeStoreConfigurationDirectory(
+        JNIEnv* env, jclass, jlong handle, jstring directory) {
+    DaasAPI* instance=toApi(handle);if(!instance)return JNI_FALSE;DirectoryDepot depot(toStdString(env,directory));return instance->storeConfiguration(&depot)?JNI_TRUE:JNI_FALSE;
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeLoadConfigurationDirectory(
+        JNIEnv* env, jclass, jlong handle, jstring directory) {
+    DaasAPI* instance=toApi(handle);if(!instance)return JNI_FALSE;DirectoryDepot depot(toStdString(env,directory));return instance->loadConfiguration(&depot)?JNI_TRUE:JNI_FALSE;
+}
+
+extern "C" JNIEXPORT jobject JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeFrisbeeICMP(
+        JNIEnv* env, jclass, jlong handle, jlong din, jlong timeout, jlong retry) {
+    DaasAPI* instance=toApi(handle);return makeDaasError(env,instance?instance->frisbeeICMP(static_cast<din_t>(din),static_cast<uint32_t>(timeout),static_cast<uint32_t>(retry)):ERROR_UNKNOWN);
+}
+
+extern "C" JNIEXPORT jobject JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeFrisbeeDPERF(
+        JNIEnv* env, jclass, jlong handle, jlong din, jlong packets, jlong blockSize, jlong period) {
+    DaasAPI* instance=toApi(handle);return makeDaasError(env,instance?instance->frisbeeDPERF(static_cast<din_t>(din),static_cast<uint32_t>(packets),static_cast<uint32_t>(blockSize),static_cast<uint32_t>(period)):ERROR_UNKNOWN);
+}
 
 
 extern "C"
