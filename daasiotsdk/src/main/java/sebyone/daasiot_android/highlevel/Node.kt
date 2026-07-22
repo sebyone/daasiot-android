@@ -4,6 +4,7 @@ import org.json.JSONObject
 import sebyone.daasiot_android.DaasInstance
 import sebyone.daasiot_android.DaasWrapper
 import sebyone.daasiot_android.entity.DDO
+import sebyone.daasiot_android.entity.FeatureRequest
 import sebyone.daasiot_android.enums.*
 import java.io.Closeable
 import java.io.File
@@ -43,14 +44,37 @@ class Node(val config: NodeConfig) : Closeable {
     fun unmap(din: Long) = DaasWrapper.remove(handle, din)
     fun locate(din: Long) = DaasWrapper.locate(handle, din)
     fun discovery(link: LinkType = LinkType.LINK_NONE) = DaasWrapper.discovery(handle, link)
+    fun join(sid: Long = 0, link: LinkType = LinkType.LINK_NONE, timeoutMillis: Long = 5000) = DaasWrapper.join(handle, sid, link, timeoutMillis)
     fun listNodes() = DaasWrapper.listNodes(handle).toList()
     fun nodeList() = DaasWrapper.getNodeList(handle).toList()
+    fun allNodes(sid: Long) = DaasWrapper.getAllNodes(handle, sid).toList()
+    fun status(din: Long? = null) = if (din == null) DaasWrapper.getStatus(handle) else DaasWrapper.status(handle, din)
+    fun fetch(din: Long, options: Int = 0) = DaasWrapper.fetch(handle, din, options)
+    fun sendStatus(din: Long) = DaasWrapper.sendStatus(handle, din)
+    fun syncedTimestamp() = DaasWrapper.getSyncedTimestamp(handle)
+    fun openStream(din: Long) = DaasWrapper.use(handle, din)
+    fun closeStream(din: Long) = DaasWrapper.end(handle, din)
+    fun send(din: Long, data: ByteArray) = DaasWrapper.send(handle, din, data)
+    fun received(din: Long) = DaasWrapper.received(handle, din)
+    fun receive(din: Long) = DaasWrapper.receive(handle, din)
+    fun availables(din: Long) = DaasWrapper.availablesPull(handle, din)
+    fun addTypeset(code: Int) = DaasWrapper.addTypeset(handle, code)
     fun addFeature(feature: Feature) = DaasWrapper.addNodeFeatures(handle, feature)
     fun features() = DaasWrapper.getNodeFeatures(handle).toList()
     fun hasFeature(din: Long, feature: Feature) = DaasWrapper.nodeHasFeature(handle, din, feature)
+    fun requestFeature(din: Long, request: FeatureRequest, timeoutMillis: Long = 1000) = DaasWrapper.requestFeature(handle, din, request, timeoutMillis)
     fun frisbee(din: Long) = DaasWrapper.frisbee(handle, din)
     fun frisbeeIcmp(din: Long, timeoutMillis: Long = 1000, retry: Long = 3) = DaasWrapper.frisbeeICMP(handle, din, timeoutMillis, retry)
     fun frisbeeDperf(din: Long, packets: Long = 10, blockSize: Long = 1024 * 1024, period: Long = 0) = DaasWrapper.frisbeeDPERF(handle, din, packets, blockSize, period)
+    fun dperfResult() = DaasWrapper.getFrisbeeResultDPERF(handle)
+    fun createNetwork() = DaasWrapper.createNetwork(handle)
+    fun unbindNetwork() = DaasWrapper.unbindNetwork(handle)
+    fun resetStatistics() = DaasWrapper.doStatisticsReset(handle)
+    fun systemStatistic(code: Int) = DaasWrapper.getSystemStatistics(handle, code)
+    fun version() = DaasWrapper.getVersion(handle)
+    fun buildInfo() = DaasWrapper.getBuildInfo(handle)
+    fun availableDrivers() = DaasWrapper.listAvailableDrivers(handle)
+    fun errorString(error: DaasError) = DaasWrapper.errorToString(handle, error)
     fun saveProfile(file: File) = ProfileStore.save(config, file)
     fun storeConfiguration(directory: File) = DaasWrapper.storeConfiguration(handle, directory)
     fun loadConfiguration(directory: File) = DaasWrapper.loadConfiguration(handle, directory)

@@ -470,6 +470,18 @@ Java_sebyone_daasiot_1android_DaasWrapper_nativeFetchCopy(
 
 extern "C"
 JNIEXPORT jobject JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeUnlock(
+        JNIEnv* env, jclass, jlong handle, jlong din, jstring securityKey) {
+    DaasAPI* api = toApi(handle);
+    if (!api || !securityKey) return nullptr;
+    const char* key = env->GetStringUTFChars(securityKey, nullptr);
+    const node_info_t& result = api->unlock(static_cast<din_t>(din), key);
+    env->ReleaseStringUTFChars(securityKey, key);
+    return makeNodeInfo(env, result);
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
 Java_sebyone_daasiot_1android_DaasWrapper_nativeSyncNode(
         JNIEnv* env, jclass, jlong handle, jlong din, jint timezone) {
 
@@ -677,6 +689,24 @@ Java_sebyone_daasiot_1android_DaasWrapper_nativeFrisbee(
     if (!api) return makeDaasError(env, ERROR_UNKNOWN);
 
     return makeDaasError(env, api->frisbee((din_t)din));
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_sebyone_daasiot_1android_DaasWrapper_nativeGetFrisbeeResultDPERF(
+        JNIEnv* env, jclass, jlong handle) {
+    DaasAPI* api = toApi(handle);
+    if (!api) return nullptr;
+    const dperf_info_result info = api->getFrisbeeResultDPERF();
+    jclass cls = env->FindClass("sebyone/daasiot_android/entity/DperfInfoResult");
+    jmethodID ctor = env->GetMethodID(cls, "<init>", "(JJJJJJ)V");
+    return env->NewObject(cls, ctor,
+        static_cast<jlong>(info.sender_first_timestamp),
+        static_cast<jlong>(info.local_end_timestamp),
+        static_cast<jlong>(info.remote_first_timestamp),
+        static_cast<jlong>(info.remote_last_timestamp),
+        static_cast<jlong>(info.remote_pkt_counter),
+        static_cast<jlong>(info.remote_data_counter));
 }
 
 /* ---------------- Network & options ---------------- */

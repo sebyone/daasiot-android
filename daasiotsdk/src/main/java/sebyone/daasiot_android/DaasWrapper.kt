@@ -37,6 +37,7 @@ package sebyone.daasiot_android
 
 import sebyone.daasiot_android.entity.AvailablePullResult
 import sebyone.daasiot_android.entity.DDO
+import sebyone.daasiot_android.entity.DperfInfoResult
 import sebyone.daasiot_android.entity.FeatureRequest
 import sebyone.daasiot_android.entity.NodeInfo
 import sebyone.daasiot_android.entity.NodeMapEntry
@@ -99,8 +100,7 @@ object DaasWrapper {
     private external fun nativeFetchCopy(ptr: Long, din: Long, opts: Int): NodeInfo
     private external fun nativeGetSyncedTimestamp(ptr: Long): Long
 
-/*    private external fun nativeUnlock(ptr: Long, din: Long, skey: String): NodeInfo
-    private external fun nativeLock(ptr: Long, skey: String, policy: Int): NodeInfo*/
+    private external fun nativeUnlock(ptr: Long, din: Long, skey: String): NodeInfo
 
     private external fun nativeSyncNode(ptr: Long, din: Long, timezone: Int): NodeInfo
     private external fun nativeSyncNet(ptr: Long, din: Long, bubbleTime: Int): NodeInfo
@@ -122,6 +122,7 @@ object DaasWrapper {
     private external fun nativeFrisbee(ptr: Long, din: Long): DaasError
     private external fun nativeFrisbeeICMP(ptr: Long, din: Long, timeoutMillis: Long, retry: Long): DaasError
     private external fun nativeFrisbeeDPERF(ptr: Long, din: Long, packets: Long, blockSize: Long, tripPeriod: Long): DaasError
+    private external fun nativeGetFrisbeeResultDPERF(ptr: Long): DperfInfoResult
 
     private external fun nativeSetDDOPolicy(ptr: Long, policy: DDOPolicy): DaasError
     private external fun nativeCreateNetwork(ptr: Long): DaasError
@@ -239,8 +240,12 @@ object DaasWrapper {
     /** Returns the local node's ATS-corrected timestamp (falls back to local time if not synced). */
     fun getSyncedTimestamp(ptr: Long): Long = nativeGetSyncedTimestamp(ptr)
 
-/*    fun unlock(ptr: Long, din: Long, skey: String): NodeInfo = nativeUnlock(ptr, din, skey)
-    fun lock(ptr: Long, skey: String, policy: Int): NodeInfo = nativeLock(ptr, skey, policy)*/
+    fun unlock(ptr: Long, din: Long, skey: String): NodeInfo = nativeUnlock(ptr, din, skey)
+
+    /** Exposed for API parity; the Android 0.22.0 binary does not export DaasAPI::lock. */
+    fun lock(ptr: Long, skey: String, policy: Int): NodeInfo {
+        throw UnsupportedOperationException("DaasAPI::lock is not exported by bundled libdaas 0.22.0")
+    }
 
     /** Sets the local system time on remote node [din] and synchronizes ATS. Not yet implemented upstream. */
     fun syncNode(ptr: Long, din: Long, timezone: Int): NodeInfo = nativeSyncNode(ptr, din, timezone)
@@ -289,6 +294,7 @@ object DaasWrapper {
         nativeFrisbeeICMP(ptr, din, timeoutMillis, retry)
     fun frisbeeDPERF(ptr: Long, din: Long, packets: Long = 10, blockSize: Long = 1024 * 1024, tripPeriod: Long = 0): DaasError =
         nativeFrisbeeDPERF(ptr, din, packets, blockSize, tripPeriod)
+    fun getFrisbeeResultDPERF(ptr: Long): DperfInfoResult = nativeGetFrisbeeResultDPERF(ptr)
 //    fun frisbeeICMP(ptr: Long, din: Int, timeout: Int, retry: Int): Int = nativeFrisbeeICMP(ptr, din, timeout, retry)
 //    fun frisbeeDPerf(ptr: Long, din: Int, senderTotal: Int = 10, blockSize: Int = 1024*1024, period: Int = 0): Int =
 //        nativeFrisbeeDPerf(ptr, din, senderTotal, blockSize, period)
