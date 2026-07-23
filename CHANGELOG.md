@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.4] - 2026-07-23
+
+## libdaas Version 0.22.0
+
+### Added
+- Added the prototyping high-level SDK.
+- Exposed the complete libdaas API surface available to the Android binding.
+
+---
+
 ## [0.2.3] - 2026-07-17
 
 ## libdaas Version 0.22.0
