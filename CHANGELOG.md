@@ -30,8 +30,9 @@ The layout of the other daas-iot wrappers (daasiot-gnu `driver-plg`, daasiot-mac
   other direction, never accepted while the first one lived: open timeout, then both links dropped); every timing
   of blew from `android_drivers_sdk.hpp`: scan 3 s (`DAAS_BLE_SCAN_TIMEOUT_MS`, blew 5 s), open 5 s, ping 1.5 s
   (`DAAS_BLE_PING_INTERVAL_MS`, blew 5 s), link timeout 4 s (`DAAS_BLE_LINK_TIMEOUT_MS`, blew 10 s).
-- blew (Java side): the GATT client asks `CONNECTION_PRIORITY_HIGH` when it connects, 11.25–15 ms instead of the
-  ~39 ms of the default interval: MTU, service discovery and the daas negotiation of a link take less.
+- blew (Java side), from ble-wrapper `4a1ec22`: the GATT client asks `CONNECTION_PRIORITY_HIGH` when it connects,
+  11.25–15 ms instead of the ~39 ms of the default interval: MTU, service discovery and the daas negotiation of a
+  link take less.
 - libdaas out of git: `libdaas/` is the install folder of `tools/fetch_ld` (was `libdaas/INSTALLED.json` + a package
   copied by hand). The root CMake project builds android_daas and android_daas_jni; `daas::libdaas` of 0.1.0 is
   replaced by `libdaas::libdaas` and `daas::android_daas`.

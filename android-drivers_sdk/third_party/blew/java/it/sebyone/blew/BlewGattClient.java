@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
 // ble-wrapper (blew) — © 2019–2026 Sebyone Srl
-// daasiot-android 2026-11-23: CONNECTION_PRIORITY_HIGH when the GATT client connects (onConnectionStateChange).
 package it.sebyone.blew;
 
 import android.annotation.SuppressLint;
@@ -35,8 +34,8 @@ final class BlewGattClient {
 
     private final BluetoothGattCallback callback = new BluetoothGattCallback() {
         @Override public void onConnectionStateChange(BluetoothGatt g, int status, int newState) {
-            // daasiot-android: the default interval (~39-50 ms) makes MTU, service discovery and the daas
-            // negotiation of a link take seconds; HIGH asks 11.25-15 ms (not a GATT operation: no queue to keep).
+            // The default interval (~39-50 ms) makes MTU, service discovery and the first messages of a link take
+            // seconds; HIGH asks 11.25-15 ms. Not a GATT operation: it does not take the queue of RemoteDeviceAndroid.
             if (newState == BluetoothProfile.STATE_CONNECTED)
                 g.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
             nativeOnConnectionState(handle, status, newState == BluetoothProfile.STATE_CONNECTED);
