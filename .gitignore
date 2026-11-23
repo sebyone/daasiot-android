@@ -1,0 +1,8 @@
+build/
+.cxx/
+.idea/
+*.iml
+.DS_Store
+
+# libdaas is not in git: the package is pinned in libdaas/INSTALLED.json (as esp_daas/libdaas.lock.json of daasiot-esp32)
+libdaas/android-*/
