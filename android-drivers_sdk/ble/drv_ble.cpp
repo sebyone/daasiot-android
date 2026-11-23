@@ -25,6 +25,8 @@
  *                               uri_ble_t parsed once (urn), beacon SID read from the beacon, local SID from the application
  *   2026-11-14  Lorenzo Grillo   daasiot-macos: macos-drivers_sdk, blew on CoreBluetooth
  *   2026-11-23  Lorenzo Grillo   daasiot-android: android-drivers_sdk, blew on the Android BLE stack
+ *   2026-11-23  Lorenzo Grillo   1.0.1: scan and open timeouts of blew from android_drivers_sdk.hpp (scan 3 s)
+ *   2026-11-23  Lorenzo Grillo   1.1.0: open_sub reuses an open link with the node; ping and link timeouts of blew
  */
 #include "../android_drivers_sdk.hpp"
 
@@ -111,6 +113,12 @@ bool drv_ble_t::init(uri_t* l_uri) {
     cfg.name       = "daas_node";
     cfg.max_links  = _MAX_BT_CONNECTIONS;
     cfg.sid_source = [] { return (uint64_t)s_local_sid; };
+    // Timings of blew from android_drivers_sdk.hpp: a dead link is freed after DAAS_BLE_LINK_TIMEOUT_MS, a scan blocks for
+    // DAAS_BLE_SCAN_TIMEOUT_MS at most.
+    cfg.scan_timeout  = std::chrono::milliseconds(DAAS_BLE_SCAN_TIMEOUT_MS);
+    cfg.open_timeout  = std::chrono::milliseconds(DAAS_BLE_OPEN_TIMEOUT_MS);
+    cfg.ping_interval = std::chrono::milliseconds(DAAS_BLE_PING_INTERVAL_MS);
+    cfg.link_timeout  = std::chrono::milliseconds(DAAS_BLE_LINK_TIMEOUT_MS);
 
     _node = blew::link::Node::create(cfg);
     if (!_node.initialized()) {
@@ -239,6 +247,22 @@ int drv_ble_t::open_sub(const uri_t* r_uri, int& i_sub) {
     if (peer.empty()) {
         LOGE("[BLE] Invalid remote uri '%s' (8 hex digits expected)", r_uri->uri);
         return -1;
+    }
+
+    /* A link with that node already open (it opened it to us, or we did): the channel uses it. blew::Node::open()
+       reuses only a discovery link of that node and would open a second connection in the other direction, which
+       the node does not accept while the first one lives (open timeout, then both links drop). */
+    {
+        std::lock_guard<std::mutex> lock(_mtx);
+        for (int i = 0; i < _MAX_BT_CONNECTIONS; i++) {
+            sub_connection_t& s = _subs[i];
+            if (!s.in_use || !s.link.is_open() || s.link.remote_node() != peer) continue;
+            s.discovery = false;   // ours or not, from now on it is the channel of the overlay
+            s.announced = true;
+            i_sub = i;
+            LOGI("[BLE] %s already linked on sub %d: reused", r_uri->uri, i);
+            return 0;
+        }
     }
 
     /* Returns the link a discovery from that node created, or opens a new one. */

@@ -4,5 +4,7 @@ build/
 *.iml
 .DS_Store
 
-# libdaas is not in git: the package is pinned in libdaas/INSTALLED.json (as esp_daas/libdaas.lock.json of daasiot-esp32)
-libdaas/android-*/
+# libdaas is not in git: pinned in android_daas/libdaas.lock.json, installed by tools/fetch_ld
+libdaas/
+.gradle/
+local.properties

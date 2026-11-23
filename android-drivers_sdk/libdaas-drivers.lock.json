@@ -1,0 +1,7 @@
+{
+  "comment": "The drivers of daasiot-android for each <target>/<linkage> of android_daas/libdaas.lock.json: the generic ones of the libdaas package (\"<id> <version>\") and the specialized ones of android-drivers_sdk (\"<id> <version> <adapters>\"). Update it when a driver version changes (e.g. ble/ble_version.hpp) or a target is added.",
+  "libdaas": "0.24.11",
+  "kits": {
+    "android-arm64-v8a/static": ["inet4 1.0.1", "inet6 1.0.1", "ble 1.1.0 blew-1.1.0"]
+  }
+}

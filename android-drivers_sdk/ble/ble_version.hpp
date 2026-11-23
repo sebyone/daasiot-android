@@ -18,7 +18,9 @@
  *   2026-11-12  Lorenzo Grillo  creation: 1.0.0, the BLE driver of libdaas 0.24.4 as a specialized driver
  *   2026-11-14  Lorenzo Grillo   daasiot-macos: macos-drivers_sdk, blew on CoreBluetooth
  *   2026-11-23  Lorenzo Grillo   daasiot-android: android-drivers_sdk, blew on the Android BLE stack
+ *   2026-11-23  Lorenzo Grillo   1.0.1: scan of 3 s (DAAS_BLE_SCAN_TIMEOUT_MS)
+ *   2026-11-23  Lorenzo Grillo   1.1.0: an open link with the node is reused by open_sub; ping 1.5 s, link timeout 4 s
  */
 #pragma once
 
-#define DAAS_DRIVER_VERSION_BLE "1.0.0"
+#define DAAS_DRIVER_VERSION_BLE "1.1.0"

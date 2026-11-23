@@ -1,71 +1,104 @@
+<!-- daas © 2019–2026 Sebyone Srl -->
+
 # daasiot-android
 
-daas (Device as a Service) for Android (NDK, arm64-v8a). Version: `VERSION`.
+daas (Device as a Service) for Android: **android_daas**, the wrapper of libdaas for Android apps (Java API
+`it.sebyone.daas`, C++17 `daas::sdk::Node`), the **android-drivers_sdk** (BLE driver on blew) and the examples.
+Version: `VERSION` (0.2.0), on libdaas **0.24.11** (daas protocol 6.1.0), pinned in `android_daas/libdaas.lock.json`.
 
-It packages, for an Android app:
-
-- **libdaas** 0.24.11 (daas protocol 6.1.0), static package for android arm64-v8a, from the DaaS Build Console
-  (`libdaas/`, see `libdaas/INSTALLED.json`), with the generic drivers INET4 and INET6.
-- **android-drivers_sdk/ble**: the BLE driver of the `ble` slot of `_LINK_BLE` (driver ABI 2), on
-  [blew](android-drivers_sdk/third_party/blew) 1.1.0. The libdaas packages leave the slot empty
-  (`libdaas_nodrivers.a`): the BLE driver lives in the wrappers (same driver as daasiot-macos / daasiot-esp32).
+It follows the layout of the other daas-iot wrappers (daasiot-gnu, daasiot-macos, daasiot-esp32): a component that
+wraps libdaas, a `<platform>-drivers_sdk` with the specialized drivers, libdaas out of git and installed by
+`tools/fetch_ld`, the examples.
 
 ## Layout
 
 ```
-CMakeLists.txt                       daas::libdaas, daas::drv_ble
-VERSION
-libdaas/
-  INSTALLED.json                     package and sha256
-  android-arm64-v8a/static/          the libdaas package as released (include/, lib/, drivers_sdk/, ...)
-android-drivers_sdk/
-  CMakeLists.txt
-  android_drivers_sdk.hpp            ANDROID_BUILD, USE_BLE
-  include/daasiot_android/ble.h      public API of the BLE driver (daas_ble_set_local_sid)
-  ble/                               drv_ble.cpp/.hpp, local_ble.hpp (uri_ble_t), ble_version.hpp
-  third_party/blew/                  include/, lib/<abi>/libblew.a, java/ (it.sebyone.blew)
+android_daas/                 the component: an Android library module (AAR)
+  build.gradle.kts            com.android.library, namespace it.sebyone.daas, Maven publication
+  java/it/sebyone/daas/       DaasNode (+ Config), DaasListener, Ddo, NodeStatus, Link, NodeState, policies, DaasError
+  include/, src/              android_daas: daas::sdk::Node, EventRouter, file_depot (port of macos_daas)
+  jni/android_daas_jni.cpp    the binding of Node for DaasNode (libandroid_daas_jni.so)
+  CMakeLists.txt              daas::android_daas, android_daas_jni
+  libdaas.lock.json           the libdaas packages (tarball, SHA-256) of the catalog of daasiot.com
+android-drivers_sdk/          specialized drivers, built only with drivers_sdk/include of the package
+  ble/                        BLE driver of the `ble` slot of _LINK_BLE (1.0.0)
+  include/daasiot_android/    ble.h: daas_ble_set_local_sid()
+  third_party/blew/           blew 1.1.0: libblew.a per ABI, headers, Java sources it.sebyone.blew
+  libdaas-drivers.lock.json   the drivers of each <target>/<linkage>
+platforms/libdaas/libdaas.cmake   imports a libdaas package as libdaas::libdaas (DAAS_TARGET, DAAS_ROOT, DAAS_DRIVERS,
+                              DAAS_EXTRA_DRIVERS)
+examples/simple_node/         an app with a daas node (BLE + INET4), android_daas as a dependency
+tools/fetch_ld/               installs the libdaas packages of the lock into libdaas/ (gitignored)
+docs/shared/                  developers guide
+CMakeLists.txt                the native project (BLE driver, android_daas, android_daas_jni)
+settings.gradle.kts, build.gradle.kts, gradlew   the Gradle build of the repository
 ```
+
+## Build
+
+Needs the Android SDK (API 36), the NDK r28c (28.2.13676358), CMake 3.22.1 of the SDK, JDK 21.
+
+```bash
+tools/fetch_ld/fetch_ld.sh                     # libdaas of the lock into libdaas/android-arm64-v8a/static/
+./gradlew :android_daas:assembleRelease        # android_daas/build/outputs/aar/android_daas-release.aar
+./gradlew :simple_node:assembleDebug           # the example app
+./gradlew :android_daas:publishToMavenLocal    # it.sebyone.daas:android_daas:<VERSION> in ~/.m2
+```
+
+`local.properties` (gitignored) gives `sdk.dir`, as in any Android project. Another libdaas package (e.g. one built
+from daas-api): unpack it into `libdaas/android-arm64-v8a/static/` or pass `-DDAAS_ROOT=<folder>` to CMake.
 
 ## Use in an app
 
-`app/src/main/cpp/CMakeLists.txt`:
+Two ways, the same module:
 
-```cmake
-add_subdirectory(${DAASIOT_ANDROID_ROOT} daasiot-android)
-add_library(daas_jni SHARED daas_jni.cpp)
-target_link_libraries(daas_jni PRIVATE daas::libdaas)   # libdaas, BLE driver + blew, INET4/INET6, nodrivers
+1. **AAR**: `implementation(files("libs/android_daas-release.aar"))`, or from Maven
+   (`implementation("it.sebyone.daas:android_daas:0.2.0")` after `publishToMavenLocal`). The app needs no native code.
+2. **Module of the build** (developing the app and the wrapper together), in `settings.gradle.kts` of the app:
+
+   ```kotlin
+   include(":android_daas")
+   project(":android_daas").projectDir = file("<path>/daasiot-android/android_daas")
+   ```
+
+   with `id("com.android.library") version "9.0.0" apply false` in the root `build.gradle.kts` and
+   `implementation(project(":android_daas"))` in the app. libdaas must be in `<path>/daasiot-android/libdaas/`.
+
+Then:
+
+```java
+DaasNode.Config config = new DaasNode.Config(100, 101)
+        .driver(Link.BLE, "00000065")                 // blew node id: 8 hexadecimal digits
+        .driver(Link.INET4, "", 2101)                 // every IPv4 address, port 2101
+        .acceptRequests(AcceptRequests.ALL);
+DaasNode node = DaasNode.create(context, config);     // restored from filesDir/daas from the second start
+node.setListener(new DaasListener() {
+    @Override public void onDdoReceived(long din, int typeset, int size) {
+        for (Ddo ddo; (ddo = node.pull(din)) != null; ) handle(ddo);
+    }
+});
+node.start();
 ```
 
-`app/build.gradle.kts` (Java side of blew):
+- One node per process (libdaas has one): `DaasNode.create()` again after `close()`.
+- The configuration is saved in `filesDir/daas/` (`file_depot`) at every change made through the node (map,
+  drivers, join completed) and at `stop()`; the next `create()` restores it and applies only the policies of the
+  Config.
+- The events arrive on the service thread of the node (`daas-service`), where the whole API can be called.
+- BLE: the app asks the runtime permissions (`BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`, `BLUETOOTH_ADVERTISE`) before
+  `create()`; the manifest of android_daas declares them. `DaasNode.create()` initialises blew and hands the local
+  SID to the BLE driver (also after a restore or a join).
+- `DaasNode.redirectLogsToLogcat()`: the logs of libdaas in logcat (tag `libdaas`).
 
-```kotlin
-android {
-    sourceSets["main"].java.srcDir("<path>/daasiot-android/android-drivers_sdk/third_party/blew/java")
-}
-```
-
-At run time:
-
-1. `System.loadLibrary("daas_jni")`, then `it.sebyone.blew.Blew.init(context)` before enabling `_LINK_BLE`;
-2. after `doInit()` / `loadConfiguration()`, `daas_ble_set_local_sid(sid)` (`daasiot_android/ble.h`): the SID
-   blew publishes for the discovery filters of the other nodes;
-3. `enableDriver(_LINK_BLE, "<node id>")`, where the node id is 8 hexadecimal digits (from the DIN).
-
-CMake options: `DAASIOT_ANDROID_BLE` (ON), `DAASIOT_ANDROID_DRIVERS` (`inet4;inet6`).
-
-## Requirements
-
-Android API 30 or later, Android NDK r28c (clang), C++17.
+Native code of the app can use `daas::sdk::Node` directly: `add_subdirectory(<daasiot-android> daasiot-android)` and
+`target_link_libraries(<lib> PRIVATE daas::android_daas)`.
 
 ## libdaas is not in git
 
-`libdaas/android-<abi>/static/` is gitignored: the package is pinned in `libdaas/INSTALLED.json` (version, tarball,
-SHA-256). Unpack that tarball there, as is, before building:
+`libdaas/` is gitignored: the packages are pinned in `android_daas/libdaas.lock.json` and installed by
+`tools/fetch_ld/fetch_ld.sh` (`fetch_ld.ps1` on Windows) from the catalog of daasiot.com. An app that vendors
+daasiot-android (a copy inside its repository) keeps the package it builds with inside that copy.
 
-```bash
-mkdir -p libdaas/android-arm64-v8a/static
-tar -xzf libdaas-0.24.11-android-arm64-v8a-clang_arm64-v8a-static.tar.gz -C libdaas/android-arm64-v8a/static
-```
+## License
 
-To update libdaas, unpack the new package there and update `libdaas/INSTALLED.json`. The BLE driver is rebuilt
-against the `drivers_sdk/include` of that package.
+MPL-2.0 (`LICENSE`). Third-party components: `THIRD-PARTY-NOTICES.md`.

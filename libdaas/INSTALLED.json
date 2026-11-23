@@ -1,7 +1,0 @@
-{
-  "version": "0.24.11",
-  "source": "daas-api threading-mode 5dcd20c8 (local build: platforms/android/armv8, DAAS_CAPABILITIES_ADD=CX)",
-  "packages": {
-    "android-arm64-v8a/static": { "tarball": "libdaas-0.24.11-android-arm64-v8a-clang_arm64-v8a-static.tar.gz", "sha256": "3d59fd4aed9caa4c57a58e8f2196cb75305df639f1f8223f675b8ac1757e720d" }
-  }
-}
