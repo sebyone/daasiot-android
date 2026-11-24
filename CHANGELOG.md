@@ -13,7 +13,8 @@ conventions.md`), on libdaas **0.24.12**, built and published by the DaaS Build 
 ### Changed (24/11/2026)
 - **No namespaces in android_daas**: `Node`, `NodeConfig`, `EventRouter`, `file_depot`, ... are global, like the API
   of libdaas; the internal helpers are `portable_<name>`. `daas_ble_set_local_sid()` has a weak default.
-- **libdaas 0.24.12** for **three ABIs** (arm64-v8a, armeabi-v7a, x86_64; drivers INET4 and INET6 1.0.1), installed
+- **libdaas 0.24.12** for **three ABIs** (arm64-v8a, armeabi-v7a, x86_64; drivers INET4 and INET6 1.0.1; the build with
+  CX, complex addressing, republished on 24/11/2026), installed
   in `android_daas/libdaas/` (fetch_ld 2.0.1); `android_daas/libdaas.cmake` (was `platforms/libdaas/libdaas.cmake`,
   never committed) links libdaas and the drivers_kit.
 - **android-drivers_sdk renamed android-drivers-sdk**; **blew precompiled by the DaaS Build Console** (`ext/blew/
