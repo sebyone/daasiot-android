@@ -1,0 +1,18 @@
+{
+  "comment": "How the packages of daasiot-android are made (platforms/scripts/build_dist.py). Every package holds one folder with its own name, MANIFEST.json and SHA256SUMS, with <package>.<format>.sha256 next to it. Intermediate files in dist/stages/. The specialized drivers go out compiled only (driver_sources never in a package).",
+  "product": "daasiot-android",
+  "target": "android",
+  "linkage": "static",
+  "packages": {
+    "aar":         { "name": "{product}-{version}-aar",                    "format": "tar.gz", "description": "the AAR of android_daas (Java API it.sebyone.daas, libandroid_daas_jni.so of every ABI with libdaas and the BLE driver on blew), the example, the docs" },
+    "drivers-sdk": { "name": "{product}-{version}-drivers-sdk-{linkage}",  "format": "tar.gz", "description": "the android-drivers-sdk: the specialized drivers compiled (drivers_kit of every ABI, no driver source), the template and the CMake files of a new driver" },
+    "src":         { "name": "{product}-{version}-src",                    "format": "tar.gz", "description": "the sources of the repository" }
+  },
+  "component": "android_daas",
+  "top_files": ["README.md", "LICENSE", "CHANGELOG.md", "VERSION", "THIRD-PARTY-NOTICES.md"],
+  "examples": ["examples/simple_node"],
+  "build_ignore": ["build", ".cxx", ".gradle", "out", ".DS_Store", "__pycache__", "local.properties"],
+  "driver_sources": ["android-drivers-sdk/ble", "android-drivers-sdk/build_drivers_kit.py"],
+  "src_exclude": ["android-drivers-sdk/ble", ".git", ".github", ".gitignore", ".gitattributes", "tests", "platforms", "tools/publisher-sdk", "tools/docs_pdf", "dist", "out", "android_daas/libdaas", "android_daas/drivers_kit", "CLAUDE.md", "daas-build.yaml", "docs/developers", "*.py", "__pycache__", ".gradle", "local.properties"],
+  "secrets": ["tools/publisher-sdk/publisher-sdk.conf", "*.key", "*.pfx"]
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- daas © 2019–2026 Sebyone Srl — android_daas (daasiot-android): the permissions of a daas node, merged into
+     the manifest of the app. The app still asks the runtime ones (BLUETOOTH_SCAN, _CONNECT, _ADVERTISE). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- INET4 / INET6 drivers -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- BLE driver (blew): Android 12+ and the legacy ones up to Android 11 -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+</manifest>

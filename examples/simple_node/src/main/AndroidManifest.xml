@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- daas © 2019–2026 Sebyone Srl — examples/simple_node (daasiot-android). The permissions of the node come from
+     the manifest of android_daas. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:label="daas simple node" android:allowBackup="false">
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

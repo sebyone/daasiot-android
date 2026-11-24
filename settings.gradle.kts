@@ -1,12 +1,8 @@
+// daas © 2019–2026 Sebyone Srl — daasiot-android: the Gradle build of the repository (the android_daas module and
+// the examples). An app includes only android_daas/ in its own build (README.md).
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google()
         mavenCentral()
         gradlePluginPortal()
     }
@@ -18,7 +14,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-
-rootProject.name = "Daasiot-android"
-include(":daasiotsdk")
- 
+rootProject.name = "daasiot-android"
+include(":android_daas")
+include(":simple_node")
+project(":simple_node").projectDir = file("examples/simple_node")

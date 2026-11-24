@@ -1,52 +1,20 @@
-<<<<<<< HEAD
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
-=======
-# Gradle files
-.gradle/
 build/
-
-# Local configuration file (sdk path, etc)
-local.properties
-
-# Log/OS Files
-*.log
-
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
 .cxx/
-*.aab
-*.apk
-output-metadata.json
-
-# IntelliJ
-*.iml
 .idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+*.iml
+.DS_Store
 
-# Keystore files
-*.jks
-*.keystore
-
-# Google Services (e.g. APIs or Firebase)
-google-services.json
-
-# Android Profiling
-*.hprof
->>>>>>> dev
+# libdaas and the drivers_kit are not in git: android_daas/libdaas.lock.json (tools/fetch_ld) and
+# android-drivers-sdk/build_drivers_kit.py
+/android_daas/libdaas/
+/android_daas/drivers_kit/
+/out/
+/dist/
+__pycache__/
+*.pyc
+.*.md2pdf.html
+tools/publisher-sdk/publisher-sdk.conf
+*.key
+*.pfx
+.gradle/
+local.properties

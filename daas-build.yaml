@@ -1,0 +1,59 @@
+# daas © 2019–2026 Sebyone Srl — daasiot-android
+# Manifest for the DaaS Build Console (daas-builder, nobile): how it builds and publishes daasiot-android.
+# Contract: wrapper-HOWTO.md of daas-builder. The script is platforms/daas_builder.sh.
+tipo: wrapper
+nome: daasiot-android
+versione: 0.2.0                    # keep equal to VERSION
+descrizione: daasiot-android, the daas-iot SDK for Android (android_daas AAR, BLE on blew, examples)
+
+# One build on the Debian VM, with the Android NDK, a JDK and android.jar (no Gradle): the AAR of every ABI of the
+# lock. libdaas comes from the daasiot.com catalog (tools/fetch_ld, the packages of android_daas/libdaas.lock.json),
+# not from the builds of the builder; blew from the ext-dep of the builder (android-drivers-sdk/
+# libdaas-drivers.lock.json, DAAS_BUILDER_URL).
+target: [android/armv8]
+libdaas: catalogo
+richiede:
+  strumenti: [cmake, android-ndk, jdk, android-platform, python3]
+  ext_deps: [blew]
+
+compila: platforms/daas_builder.sh
+
+produce:
+  - file: "daasiot-android-*-aar.tar.gz"
+  - file: "daasiot-android-*-drivers-sdk-static.tar.gz"
+  - file: "daasiot-android-*-src.tar.gz"
+  - file: "daasiot-android-*.sha256"
+
+# The tarball of the product (daasiot-android-<versione>.tar.gz, made by the builder for every wrapper): the tracked
+# files of this repository with the libdaas and the drivers_kit the build installed, without the files for developers
+# and the sources of the specialized drivers (they go out compiled only).
+tarball:
+  aggiungi: [android_daas/libdaas, android_daas/drivers_kit]
+  escludi: [tools, android-drivers-sdk/ble]
+
+# After a successful build the builder publishes to daasiot.com (Publisher API v1, sito.yaml of the builder): the AAR
+# package is the primary package of the SDK release (sdk_id + versione, static), the others are attachments, the PDFs
+# of the documents are attached to it. {versione} and {daas} are replaced with the versions of daasiot-android and
+# libdaas.
+pubblica:
+  sdk_id: 6                        # Android on daasiot.com
+  variante: static
+  primario: "daasiot-android-{versione}-aar.tar.gz"
+  allegati:
+    - {file: "daasiot-android-{versione}-drivers-sdk-static.tar.gz", ruolo: other}
+    - {file: "daasiot-android-{versione}-src.tar.gz", ruolo: other}
+  documenti: "docs/shared/latest/*.pdf"
+  # the libdaas releases of the ABIs of the lock: «libdaas_release #N» in the log of the daas-api release; add the ids
+  # when the lock moves to another libdaas
+  libdaas_release_ids: {"0.24.12": [54, 53, 55]}   # android arm64-v8a, armeabi-v7a, x86_64 (static)
+  libdaas_lock: android_daas/libdaas.lock.json
+  sommario: "daasiot-android {versione} on libdaas {daas}: android_daas, the daas SDK for Android apps (AAR with the Java API it.sebyone.daas, arm64-v8a, armeabi-v7a, x86_64), the BLE driver on blew and the example"
+  chips: [Android, arm64-v8a, armeabi-v7a, x86_64, "libdaas {daas}", INET4, INET6, BLE]
+  requires:
+    - "Android API 30 or later"
+    - "an app with Java 11 or Kotlin; the runtime Bluetooth permissions for BLE"
+  install:
+    - {t: "Verify and extract the package (AAR, example, guides in docs/):"}
+    - {c: bash, code: "sha256sum -c daasiot-android-{versione}-aar.tar.gz.sha256\ntar -xzf daasiot-android-{versione}-aar.tar.gz"}
+    - {t: "Copy the AAR into libs/ of the app module and add it to build.gradle.kts:"}
+    - {c: kotlin, code: "dependencies {\n    implementation(files(\"libs/android_daas-{versione}-release.aar\"))\n}"}

@@ -1,7 +1,5 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+// daas © 2019–2026 Sebyone Srl — daasiot-android: the plugins of the modules (AGP 9.0, as the apps that use it).
 plugins {
-    alias(libs.plugins.android.application) apply false
-   // alias(libs.plugins.kotlin.android) apply false
-    // If you’ll make a library, also add:
-    alias(libs.plugins.android.library) apply false
+    id("com.android.library") version "9.0.0" apply false
+    id("com.android.application") version "9.0.0" apply false
 }

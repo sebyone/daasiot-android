@@ -1,0 +1,20 @@
+{
+  "comment": "libdaas required by daasiot-android: the packages of the public catalog https://daasiot.com/api/libdaas.php (the only source of libdaas), one per <target>/<linkage>, with the file name of the catalog (tarball) and its SHA-256. tools/fetch_ld/fetch_ld.sh installs exactly these packages into android_daas/libdaas/<target>/<linkage>/. Edit this file to add a package or to move to another libdaas version (every tarball of the same version); fetch_ld.sh --verify checks the names and prints the published SHA-256 to write here. Android packages are static only.",
+  "catalog": "https://daasiot.com/daas-core-archive/",
+  "catalog_api": "https://daasiot.com/api/libdaas.php",
+  "version": "0.24.12",
+  "packages": {
+    "android-arm64-v8a/static": {
+      "tarball": "libdaas-0.24.12-android-arm64-v8a-clang_arm64-v8a-static.tar.gz",
+      "sha256": "be04e68b0a5b6e6989c861eb7dc14261e9bf050d3ff06d258b835af0455d4aa3"
+    },
+    "android-armeabi-v7a/static": {
+      "tarball": "libdaas-0.24.12-android-armeabi-v7a-clang_armeabi-v7a-static.tar.gz",
+      "sha256": "4476e40c0f24d5d3272f05dcd234e821dcd50f0f39fedf11e1425de844280390"
+    },
+    "android-x86_64/static": {
+      "tarball": "libdaas-0.24.12-android-x86_64-clang_x86_64-static.tar.gz",
+      "sha256": "b275482c96f31216181be79f68d62b9d2e2495213b3334da501feb87f315d354"
+    }
+  }
+}
