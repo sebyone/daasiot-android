@@ -8,7 +8,7 @@
 # that the official source has the file (listed as available in the catalog https://daasiot.com/api/libdaas.php and
 # served as a .tar.gz at the download_url of its entry, https://daasiot.com/api/download-core.php?file=<file>),
 # downloads it, checks its SHA-256 against the lock and, when the catalog publishes it, against <file>.sha256, and
-# unpacks it into libdaas/<target>/<linkage>/ (with drivers_sdk/, the headers of the driver contract, from libdaas
+# unpacks it into android_daas/libdaas/<target>/<linkage>/ (with drivers_sdk/, the headers of the driver contract, from libdaas
 # 0.24.8). Same files and INSTALLED.json as fetch_ld.sh. The lock is the list: a new target, another package or
 # another libdaas version is a change of the lock (-Verify prints the published SHA-256 to write there).
 # Needs Windows PowerShell 5.1 (or PowerShell 7) and tar.exe (Windows 10 1803 or later).
@@ -48,6 +48,7 @@
 #                                     -Verify prints the published SHA-256; -List shows every libdaas package
 #   2026-11-23  l.grillo@sebyone.it  daasiot-android: lock android_daas/libdaas.lock.json, targets android-<ABI>
 #                                    (static); same tool, FETCH_LD_VERSION 2.0.0
+#   2026-11-24  l.grillo@sebyone.it  2.0.1: packages installed into android_daas/libdaas/ (conventions)
 
 [CmdletBinding(PositionalBinding = $false)]
 param(
@@ -63,14 +64,14 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"            # Invoke-WebRequest is much slower with the progress bar
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
-$FetchLdVersion = "2.0.0"                    # version of this tool (see Version above)
+$FetchLdVersion = "2.0.1"                    # version of this tool (see Version above)
 $Catalog   = "https://daasiot.com/api/libdaas.php"
 $Site      = "https://daasiot.com"
 $Download  = "/api/download-core.php?file="
 $UserAgent = "daasiot-android-fetch-ld"
 $Root  = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $Lock  = Join-Path $Root "android_daas\libdaas.lock.json"
-$Dest  = Join-Path $Root "libdaas"
+$Dest  = Join-Path $Root "android_daas\libdaas"
 $Stamp = Join-Path $Dest "INSTALLED.json"
 
 function Log([string]$m) { Write-Host "[libdaas] $m" }
@@ -137,7 +138,7 @@ fetch_ld.ps1: libdaas for daasiot-android from the catalog of daasiot.com, the p
 usage: powershell -ExecutionPolicy Bypass -File tools\fetch_ld\fetch_ld.ps1 [command] [options]
 
 commands:
-  (none)                      verify, download and install every package of the lock into libdaas\
+  (none)                      verify, download and install every package of the lock into android_daas\libdaas\
   -Verify                     only check that the catalog has the packages of the lock and serves them, and
                               compare the published SHA-256 with the lock (nothing installed)
   -Check                      offline check of what is installed (exit code 1 if not ok)
@@ -196,12 +197,12 @@ if ($Check) {
     if (Test-Path $Stamp) { $installed = Get-Content -Raw -Encoding UTF8 $Stamp | ConvertFrom-Json }
     foreach ($k in $keys) {
         $dir = Join-Path $Dest $k
-        if (-not (Test-Path (Join-Path $dir "include\daas.hpp"))) { Log "missing libdaas/$k/include/daas.hpp"; $problems++ }
+        if (-not (Test-Path (Join-Path $dir "include\daas.hpp"))) { Log "missing android_daas/libdaas/$k/include/daas.hpp"; $problems++ }
         elseif (-not (Test-Path (Join-Path $dir "lib\libdaas.a")) -and -not (Test-Path (Join-Path $dir "lib\libdaas.so"))) {
-            Log "missing libdaas/$k/lib/libdaas.*"; $problems++
+            Log "missing android_daas/libdaas/$k/lib/libdaas.*"; $problems++
         }
         if ($installed -and $installed.packages.$k -and $installed.packages.$k.tarball -ne $all[$k].name) {
-            Log "libdaas/$k was not installed from $($all[$k].name)"; $problems++
+            Log "android_daas/libdaas/$k was not installed from $($all[$k].name)"; $problems++
         }
     }
     if (-not $installed -or "$($installed.version)" -ne $Version) {
@@ -287,7 +288,7 @@ try {
         if (Test-Path $target) { Remove-Item -Recurse -Force $target }
         New-Item -ItemType Directory -Force $target | Out-Null
         Copy-Item -Recurse -Force (Join-Path $src "*") $target
-        Log "${k}: $name -> libdaas/$k/"
+        Log "${k}: $name -> android_daas/libdaas/$k/"
         $records[$k] = "    `"$k`": { `"tarball`": `"$name`", `"sha256`": `"$digest`" }"
     }
     # the other packages of the lock still installed from this version stay in the record

@@ -2,5 +2,11 @@
 
 # docs
 
-- `shared/` — the documentation shipped with daasiot-android: `android-daasiot-devel_00000200.md`, the developers
-  guide of 0.2.0 (file names carry the version code `_MMMmmmpp`).
+| Path | Content |
+|---|---|
+| `shared/` | the documents for users, versioned with the code of `VERSION` (`_<MMMmmmpp>`, 0.2.0 → `00000200`) |
+| `shared/latest/` | their PDFs (`tools/docs_pdf/md2pdf.py`; the code is dropped from the name except for `_refs_`) |
+
+| Document | PDF |
+|---|---|
+| [android-daasiot-devel_00000200.md](shared/android-daasiot-devel_00000200.md) — developers guide | `android-daasiot-devel.pdf` |

@@ -4,7 +4,17 @@ build/
 *.iml
 .DS_Store
 
-# libdaas is not in git: pinned in android_daas/libdaas.lock.json, installed by tools/fetch_ld
-libdaas/
+# libdaas and the drivers_kit are not in git: android_daas/libdaas.lock.json (tools/fetch_ld) and
+# android-drivers-sdk/build_drivers_kit.py
+/android_daas/libdaas/
+/android_daas/drivers_kit/
+/out/
+/dist/
+__pycache__/
+*.pyc
+.*.md2pdf.html
+tools/publisher-sdk/publisher-sdk.conf
+*.key
+*.pfx
 .gradle/
 local.properties

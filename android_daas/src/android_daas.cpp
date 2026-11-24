@@ -3,7 +3,7 @@
  *
  * File: android_daas.cpp
  *
- * Implementation of daas::sdk::Node, NodeConfig and InMemoryInbox.
+ * Implementation of Node, NodeConfig and InMemoryInbox.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  * If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -40,15 +40,15 @@
  * 08/11/2026 - plogiacco@sebyone.it - one level of wrapping: DaasAPI owned by the node, DDO helpers moved here from dw_gnu, android_daas.cpp
  * 14/11/2026 - l.grillo@sebyone.it - daasiot-macos: port to macOS (from gnu_daas of daasiot-gnu 0.2.1)
  * 23/11/2026 - l.grillo@sebyone.it - daasiot-android: port to Android (from macos_daas of daasiot-macos 0.1.0)
+ * 24/11/2026 - l.grillo@sebyone.it - no namespace (global API, like libdaas); weak daas_ble_set_local_sid (drivers_kit)
  */
 
 #include "android_daas.hpp"
 
-#ifdef DAASIOT_ANDROID_BLE
-#include "daasiot_android/ble.h"
-#endif
+// The local SID for the BLE driver of the drivers_kit (android-drivers-sdk/ble): this weak definition does nothing
+// and the driver linked from the kit replaces it.
+extern "C" __attribute__((weak)) void daas_ble_set_local_sid(uint64_t) {}
 
-namespace daas { namespace sdk {
 
 bool NodeConfig::valid() const {
     for (const auto& driver : drivers) if (driver.uri.empty() && driver.port == 0) return false;
@@ -73,7 +73,7 @@ namespace {
 std::string chooseHardware(const NodeConfig& config, const char* argument) {
     std::string version = argument != nullptr && *argument != '\0' ? std::string(argument)
                         : !config.parameters.hardwareVersion.empty() ? config.parameters.hardwareVersion
-                        : sdk::hardwareVersion();
+                        : ::hardwareVersion();
     return version.substr(0, kHardwareVersionMax);
 }
 
@@ -132,10 +132,8 @@ void Node::resolveDrivers() {
 }
 
 void Node::publishLocalSid() {
-#ifdef DAASIOT_ANDROID_BLE
     // As dw_esp32::doInit() of daasiot-esp32: the SID that blew publishes (INFO) for the discovery filters.
     daas_ble_set_local_sid(static_cast<uint64_t>(api_->getLocalSid()));
-#endif
 }
 
 daas_error_t Node::apply() {
@@ -321,4 +319,3 @@ daas_error_t Node::disableDriver(link_t link) {
     return result;
 }
 
-}} // namespace daas::sdk

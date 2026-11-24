@@ -15,6 +15,7 @@
 //
 // Changes:
 //   2026-11-23  Lorenzo Grillo  creation
+//   2026-11-24  Lorenzo Grillo  three ABIs; blew (Java side) from the drivers_kit (conventions)
 
 plugins {
     id("com.android.library")
@@ -30,7 +31,7 @@ android {
 
     defaultConfig {
         minSdk = 30                // Android API 30, the minimum of the libdaas packages
-        ndk { abiFilters += listOf("arm64-v8a") }   // the ABIs of libdaas/ and of blew
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64") }   // the ABIs of the libdaas lock and of blew
         consumerProguardFiles("consumer-rules.pro")
         externalNativeBuild {
             cmake { arguments += listOf("-DANDROID_STL=c++_static") }
@@ -38,7 +39,8 @@ android {
     }
 
     sourceSets["main"].java.srcDir("java")
-    sourceSets["main"].java.srcDir("../android-drivers_sdk/third_party/blew/java")
+    // the Java side of blew, from the drivers_kit (android-drivers-sdk/build_drivers_kit.py): the same for every ABI
+    sourceSets["main"].java.srcDir("drivers_kit/android-arm64-v8a/static/java")
     sourceSets["main"].manifest.srcFile("AndroidManifest.xml")
 
     externalNativeBuild {

@@ -3,7 +3,7 @@
  *
  * File: android_events.hpp
  *
- * daas::sdk::EventRouter: the IDaasApiEvent of a node. Every callback of libdaas becomes an Event delivered to
+ * EventRouter: the IDaasApiEvent of a node. Every callback of libdaas becomes an Event delivered to
  * the listeners of its type, queued and run on the application thread (dispatch, Node::service) or run in the
  * callback; a pipe wakes a poll/epoll/select loop.
  *
@@ -42,6 +42,7 @@
  * 08/11/2026 - plogiacco@sebyone.it - split from the node into gnu_events.hpp
  * 14/11/2026 - l.grillo@sebyone.it - daasiot-macos: port to macOS (from gnu_daas of daasiot-gnu 0.2.1)
  * 23/11/2026 - l.grillo@sebyone.it - daasiot-android: port to Android (from macos_daas of daasiot-macos 0.1.0)
+ * 24/11/2026 - l.grillo@sebyone.it - no namespace: the API of android_daas is global, like libdaas
  */
 
 #ifndef _ANDROID_EVENTS_H__
@@ -59,7 +60,6 @@
 #include <utility>
 #include <vector>
 
-namespace daas { namespace sdk {
 
 enum class EventType { DinAccepted, DdoReceived, FrisbeeReceived, NodeStateReceived, AtsSyncCompleted,
     FrisbeeDperfCompleted, NetworkDiscovered, NodeConnectedToNetwork, StreamInfoReceived, AttackPanic };
@@ -129,6 +129,5 @@ private:
     int wfd_ = -1;              ///< the writable end of the pipe of fd_
 };
 
-}} // namespace daas::sdk
 
 #endif // _ANDROID_EVENTS_H__

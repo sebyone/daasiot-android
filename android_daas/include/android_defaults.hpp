@@ -39,6 +39,7 @@
  * 08/11/2026 - plogiacco@sebyone.it - creation: defaults of the queues, of libdaas and of the persistence; hardware version callback
  * 14/11/2026 - l.grillo@sebyone.it - daasiot-macos: port to macOS (from gnu_daas of daasiot-gnu 0.2.1)
  * 23/11/2026 - l.grillo@sebyone.it - daasiot-android: port to Android (from macos_daas of daasiot-macos 0.1.0)
+ * 24/11/2026 - l.grillo@sebyone.it - no namespace: the API of android_daas is global, like libdaas
  */
 
 #ifndef _ANDROID_DEFAULTS_H__
@@ -158,7 +159,6 @@
 #include <functional>
 #include <string>
 
-namespace daas { namespace sdk {
 
 /** @brief The options of libdaas (DaasAPI::setOptions), all applied by the Node at every start. */
 struct LibdaasParameters {
@@ -216,6 +216,5 @@ std::string hardwareVersion();
  */
 std::string detectHardware();
 
-}} // namespace daas::sdk
 
 #endif // _ANDROID_DEFAULTS_H__

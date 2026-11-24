@@ -8,7 +8,7 @@
 # there, verifies that the official source has the file (listed as available in the catalog
 # https://daasiot.com/api/libdaas.php and served as a .tar.gz at the download_url of its entry,
 # https://daasiot.com/api/download-core.php?file=<file>), downloads it, checks its SHA-256 against the lock and, when
-# the catalog publishes it, against <file>.sha256, and unpacks it into libdaas/<target>/<linkage>/ (with drivers_sdk/,
+# the catalog publishes it, against <file>.sha256, and unpacks it into android_daas/libdaas/<target>/<linkage>/ (with drivers_sdk/,
 # the headers of the driver contract, from libdaas 0.24.8). The lock is the list: a new target, another package or
 # another libdaas version is a change of the lock (fetch_ld.sh --verify prints the published SHA-256 to write there).
 # Needs bash, curl or wget, tar, od, sha256sum (or shasum). fetch_ld.ps1 is the same tool for Windows PowerShell.
@@ -51,17 +51,19 @@
 #                                     --verify prints the published SHA-256; --list shows every libdaas package
 #   2026-11-23  l.grillo@sebyone.it  daasiot-android: lock android_daas/libdaas.lock.json, targets android-<ABI>
 #                                    (static); same tool, FETCH_LD_VERSION 2.0.0
+#   2026-11-24  l.grillo@sebyone.it  2.0.1: packages installed into android_daas/libdaas/ (conventions of the
+#                                    daasiot-<target> repositories: libdaas inside the component that wraps it)
 
 set -euo pipefail
 
-FETCH_LD_VERSION="2.0.0"                        # version of this tool (see Version above)
+FETCH_LD_VERSION="2.0.1"                        # version of this tool (see Version above)
 CATALOG="https://daasiot.com/api/libdaas.php"
 DOWNLOAD="/api/download-core.php?file="
 SITE="https://daasiot.com"
 USER_AGENT="daasiot-android-fetch-ld"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 LOCK="$ROOT/android_daas/libdaas.lock.json"
-DEST="$ROOT/libdaas"
+DEST="$ROOT/android_daas/libdaas"
 STAMP="$DEST/INSTALLED.json"
 
 log() { echo "[libdaas] $*"; }
@@ -144,7 +146,7 @@ fetch_ld.sh: libdaas for daasiot-android from the catalog of daasiot.com, the pa
 usage: tools/fetch_ld/fetch_ld.sh [command] [options]
 
 commands:
-  (none)                      verify, download and install every package of the lock into libdaas/
+  (none)                      verify, download and install every package of the lock into android_daas/libdaas/
   --verify                    only check that the catalog has the packages of the lock and serves them, and
                               compare the published SHA-256 with the lock (nothing installed)
   --check                     offline check of what is installed (exit code 1 if not ok)
@@ -216,9 +218,9 @@ check)
     for e in "${ENTRIES[@]}"; do
         read -r key name digest <<< "$e"
         dir="$DEST/$key"
-        if [ ! -f "$dir/include/daas.hpp" ]; then log "missing libdaas/$key/include/daas.hpp"; problems=1
-        elif [ ! -f "$dir/lib/libdaas.a" ] && [ ! -f "$dir/lib/libdaas.so" ]; then log "missing libdaas/$key/lib/libdaas.*"; problems=1; fi
-        if [ -f "$STAMP" ] && ! grep -qF "\"$name\"" "$STAMP"; then log "libdaas/$key was not installed from $name"; problems=1; fi
+        if [ ! -f "$dir/include/daas.hpp" ]; then log "missing android_daas/libdaas/$key/include/daas.hpp"; problems=1
+        elif [ ! -f "$dir/lib/libdaas.a" ] && [ ! -f "$dir/lib/libdaas.so" ]; then log "missing android_daas/libdaas/$key/lib/libdaas.*"; problems=1; fi
+        if [ -f "$STAMP" ] && ! grep -qF "\"$name\"" "$STAMP"; then log "android_daas/libdaas/$key was not installed from $name"; problems=1; fi
     done
     [ "$installed" = "$VERSION" ] || { log "installed libdaas ${installed:-unknown}, required $VERSION"; problems=1; }
     [ $problems -eq 0 ] || { log "run: tools/fetch_ld/fetch_ld.sh"; exit 1; }
@@ -269,7 +271,7 @@ verify|install)
         pkg="$(tr -d ' \r\n' < "$src/VERSION.txt" 2>/dev/null || true)"
         [ -z "$pkg" ] || [ "$pkg" = "$VERSION" ] || fail "$key: package version $pkg is not the $VERSION of the lock"
         rm -rf "${DEST:?}/$key" && mkdir -p "$DEST/$key" && cp -R "$src"/. "$DEST/$key"/
-        log "$key: $name -> libdaas/$key/"
+        log "$key: $name -> android_daas/libdaas/$key/"
         entries="$entries${entries:+,}
     \"$key\": { \"tarball\": \"$name\", \"sha256\": \"$digest\" }"
     done

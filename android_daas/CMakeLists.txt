@@ -2,7 +2,7 @@
 #
 # File: CMakeLists.txt — android_daas (daasiot-android)
 #
-# android_daas: the C++17 wrapper of libdaas for Android (daas::android_daas, static) and the shared library of its
+# android_daas: the C++17 wrapper of libdaas for Android (daas::android_daas, static, global API like libdaas) and the shared library of its
 # Java binding (android_daas_jni, loaded by it.sebyone.daas.DaasNode).
 #
 # Contributors:
@@ -13,6 +13,7 @@
 #
 # Changes:
 #   2026-11-23  Lorenzo Grillo  creation (from the CMakeLists.txt of macos_daas of daasiot-macos 0.1.0)
+#   2026-11-24  Lorenzo Grillo  the BLE driver from the drivers_kit (linked by libdaas::libdaas), no daas_drv_ble target
 
 add_library(android_daas STATIC
     src/android_daas.cpp
@@ -22,12 +23,6 @@ add_library(android_daas STATIC
 add_library(daas::android_daas ALIAS android_daas)
 target_include_directories(android_daas PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(android_daas PUBLIC libdaas::libdaas)
-if(TARGET daas_drv_ble)
-    # daasiot_android/ble.h and DAASIOT_ANDROID_BLE only: the archive itself is linked by libdaas::libdaas, in the
-    # slot order (before libdaas_nodrivers); linking it here too would move it after the nodriver of `ble`.
-    target_include_directories(android_daas PRIVATE $<TARGET_PROPERTY:daas_drv_ble,INTERFACE_INCLUDE_DIRECTORIES>)
-    target_compile_definitions(android_daas PRIVATE $<TARGET_PROPERTY:daas_drv_ble,INTERFACE_COMPILE_DEFINITIONS>)
-endif()
 target_compile_definitions(android_daas PUBLIC ANDROID_DAAS_VERSION="${PROJECT_VERSION}")
 set_target_properties(android_daas PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON POSITION_INDEPENDENT_CODE ON)
 target_compile_options(android_daas PRIVATE -Wall -Wextra)

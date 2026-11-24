@@ -1,12 +1,20 @@
 {
-  "comment": "libdaas required by daasiot-android: the packages of the public catalog https://daasiot.com/api/libdaas.php (the only source of libdaas), one per <target>/<linkage>, with the file name of the catalog (tarball) and its SHA-256. tools/fetch_ld/fetch_ld.sh installs exactly these packages into libdaas/<target>/<linkage>/. Edit this file to add a package or to move to another libdaas version (every tarball of the same version); fetch_ld.sh --verify checks the names and prints the published SHA-256 to write here. Android packages are static only.",
+  "comment": "libdaas required by daasiot-android: the packages of the public catalog https://daasiot.com/api/libdaas.php (the only source of libdaas), one per <target>/<linkage>, with the file name of the catalog (tarball) and its SHA-256. tools/fetch_ld/fetch_ld.sh installs exactly these packages into android_daas/libdaas/<target>/<linkage>/. Edit this file to add a package or to move to another libdaas version (every tarball of the same version); fetch_ld.sh --verify checks the names and prints the published SHA-256 to write here. Android packages are static only.",
   "catalog": "https://daasiot.com/daas-core-archive/",
   "catalog_api": "https://daasiot.com/api/libdaas.php",
-  "version": "0.24.11",
+  "version": "0.24.12",
   "packages": {
     "android-arm64-v8a/static": {
-      "tarball": "libdaas-0.24.11-android-arm64-v8a-clang_arm64-v8a-static.tar.gz",
-      "sha256": "61c3c1a8a41f4d864dc86f98f8a872114e39f4060ba8907290b92e3bd48111a0"
+      "tarball": "libdaas-0.24.12-android-arm64-v8a-clang_arm64-v8a-static.tar.gz",
+      "sha256": "2d79cf64a13a541c084a50c49e023981b1e2c0272067444662433e943d923a6a"
+    },
+    "android-armeabi-v7a/static": {
+      "tarball": "libdaas-0.24.12-android-armeabi-v7a-clang_armeabi-v7a-static.tar.gz",
+      "sha256": "000eb965a38d58b8c640710946c6e9f0508b660a2f2000ccfbb8fdd6b739b803"
+    },
+    "android-x86_64/static": {
+      "tarball": "libdaas-0.24.12-android-x86_64-clang_x86_64-static.tar.gz",
+      "sha256": "48cbe1ddfe5f932783c4ae2bd46e0f660bb31c655a22e33c9fb99266e947fa09"
     }
   }
 }

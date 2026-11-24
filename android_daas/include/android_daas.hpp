@@ -4,7 +4,7 @@
  * File: android_daas.hpp
  *
  * Main header of android_daas, the daas SDK for Android (daasiot-android), and the only include a native part of an
- * application needs. daas::sdk::Node: the only wrapper of libdaas in android_daas. It owns the DaasAPI of the process
+ * application needs. Node: the only wrapper of libdaas in android_daas. It owns the DaasAPI of the process
  * and adds the configuration (NodeConfig), the events on the application thread, the persistence through an IDepot
  * (restore, save on every change), the local SID handed to the BLE driver and the DDO helpers; every other function
  * of libdaas is Node::api(). Also NodeConfig, InboxRecord, InMemoryInbox, DdoPtr; it includes the events and the
@@ -45,6 +45,7 @@
  * 08/11/2026 - plogiacco@sebyone.it - one level of wrapping, android_daas.hpp: Node owns DaasAPI (dw_gnu removed), push(DDO&), pull(DdoPtr&), availableLinks
  * 14/11/2026 - l.grillo@sebyone.it - daasiot-macos: port to macOS (from gnu_daas of daasiot-gnu 0.2.1)
  * 23/11/2026 - l.grillo@sebyone.it - daasiot-android: port to Android (from macos_daas of daasiot-macos 0.1.0)
+ * 24/11/2026 - l.grillo@sebyone.it - no namespace: the API of android_daas is global, like libdaas
  */
 
 #ifndef _ANDROID_DAAS_H__
@@ -66,7 +67,6 @@
 #include <utility>
 #include <vector>
 
-namespace daas { namespace sdk {
 
 /** @brief Owner of a DDO returned by pull(): deleted when it goes out of scope. */
 using DdoPtr = std::unique_ptr<DDO>;
@@ -141,14 +141,14 @@ std::string anyUri(link_t link, uint16_t port);
  *        is api(), the DaasAPI itself (libdaas-refs).
  *
  * @code
- *   daas::persistence::file_depot depot(filesDir + "/daas");   // the files folder of the app (Context.getFilesDir)
- *   daas::sdk::NodeConfig config;            // used only the first time (nothing in the depot)
+ *   file_depot depot(filesDir + "/daas");   // the files folder of the app (Context.getFilesDir)
+ *   NodeConfig config;                      // used only the first time (nothing in the depot)
  *   config.sid = 100; config.din = 101;
  *   config.drivers.push_back({_LINK_BLE, "00000065", 0});
  *   config.drivers.push_back({_LINK_INET4, "", 2101});
- *   daas::sdk::Node node(config, &depot);    // restores the saved configuration, or applies config
- *   node.events().on(daas::sdk::EventType::DdoReceived, [&](const daas::sdk::Event& e) {
- *       daas::sdk::InboxRecord in; while (node.pull(e.din, in) == ERROR_NONE) handle(in); });
+ *   Node node(config, &depot);               // restores the saved configuration, or applies config
+ *   node.events().on(EventType::DdoReceived, [&](const Event& e) {
+ *       InboxRecord in; while (node.pull(e.din, in) == ERROR_NONE) handle(in); });
  *   node.start();
  *   for (;;) node.service(std::chrono::milliseconds(200));   // events, persistence (Java: DaasNode does it)
  * @endcode
@@ -159,7 +159,7 @@ public:
      *        callback of setHardwareVersionProvider(), else detectHardware() (android_defaults.hpp). */
     explicit Node(NodeConfig config, const char* hardwareVersion = nullptr);
     /**
-     * @brief Node persisted through an IDepot (e.g. daas::persistence::file_depot).
+     * @brief Node persisted through an IDepot (e.g. file_depot).
      * @details If the depot holds a configuration (DaasAPI::loadConfiguration: SID, DIN, drivers, map) the node
      *          is restored from it and only the policies/options of @p config are applied; otherwise @p config is
      *          applied and saved. Afterwards every change of identity or map made through the Node (map, unmap,
@@ -294,10 +294,9 @@ private:
     std::unique_ptr<InMemoryInbox> inbox_;
 };
 
-}} // namespace daas::sdk
 
 // The rest of the SDK, so that android_daas.hpp is the only include of a native application (this header includes
 // android_daas.hpp in turn: its guard is already defined, Node is already declared).
-#include "android_file_depot.hpp"  // daas::persistence::file_depot (IDepot on files)
+#include "android_file_depot.hpp"  // file_depot (IDepot on files)
 
 #endif // _ANDROID_DAAS_H__

@@ -3,7 +3,7 @@
  *
  * File: android_file_depot.cpp
  *
- * Implementation of daas::persistence::file_depot and of the file helpers.
+ * Implementation of file_depot and of the file helpers.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  * If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -38,6 +38,7 @@
  * 09/11/2026 - plogiacco@sebyone.it - Windows (windows-x86_64-mingw32): android_portable.hpp, %LOCALAPPDATA%
  * 14/11/2026 - l.grillo@sebyone.it - daasiot-macos: port to macOS (from gnu_daas of daasiot-gnu 0.2.1)
  * 23/11/2026 - l.grillo@sebyone.it - daasiot-android: port to Android (from macos_daas of daasiot-macos 0.1.0)
+ * 24/11/2026 - l.grillo@sebyone.it - no namespace: the API of android_daas is global, like libdaas
  */
 
 #include "android_file_depot.hpp"
@@ -52,12 +53,9 @@
 
 #include "android_portable.hpp"
 
-namespace daas { namespace persistence {
 
 namespace {
 
-using portable::isDirectory;
-using portable::syncDirectory;
 
 std::string parentOf(const std::string& path) {
     const auto slash = path.rfind('/');
@@ -74,19 +72,19 @@ std::string stateDirectory(const std::string& filesDir, const std::string& app) 
 }
 
 bool makeDirectories(const std::string& path) {
-    if (path.empty() || isDirectory(path)) return !path.empty();
+    if (path.empty() || portable_isDirectory(path)) return !path.empty();
     for (size_t pos = 1; pos != std::string::npos;) {
         pos = path.find('/', pos + 1);
         const std::string part = path.substr(0, pos);
         if (part.empty() || part.back() == ':') continue;          // "C:" of a Windows path
-        if (portable::makeDirectory(part.c_str(), ANDROID_DAAS_STATE_DIR_MODE) != 0 && errno != EEXIST) return false;
+        if (portable_makeDirectory(part.c_str(), ANDROID_DAAS_STATE_DIR_MODE) != 0 && errno != EEXIST) return false;
     }
-    return isDirectory(path);
+    return portable_isDirectory(path);
 }
 
 bool writeFileAtomic(const std::string& path, const void* data, size_t size) {
     const std::string temporary = path + ".tmp";
-    const int fd = ::open(temporary.c_str(), O_WRONLY | O_CREAT | O_TRUNC | portable::kOpenFlags, ANDROID_DAAS_STATE_FILE_MODE);
+    const int fd = ::open(temporary.c_str(), O_WRONLY | O_CREAT | O_TRUNC | portable_kOpenFlags, ANDROID_DAAS_STATE_FILE_MODE);
     if (fd < 0) return false;
     const auto* bytes = static_cast<const unsigned char*>(data);
     size_t done = 0;
@@ -96,10 +94,10 @@ bool writeFileAtomic(const std::string& path, const void* data, size_t size) {
         if (n <= 0) { ::close(fd); ::unlink(temporary.c_str()); return false; }
         done += static_cast<size_t>(n);
     }
-    if (portable::syncFile(fd) != 0) { ::close(fd); ::unlink(temporary.c_str()); return false; }
+    if (portable_syncFile(fd) != 0) { ::close(fd); ::unlink(temporary.c_str()); return false; }
     ::close(fd);
-    if (!portable::replaceFile(temporary, path)) { ::unlink(temporary.c_str()); return false; }
-    syncDirectory(parentOf(path));
+    if (!portable_replaceFile(temporary, path)) { ::unlink(temporary.c_str()); return false; }
+    portable_syncDirectory(parentOf(path));
     return true;
 }
 
@@ -125,7 +123,7 @@ bool file_depot::open(bool read_mode) {
 }
 
 bool file_depot::close() {
-    if (open_ && writable_) syncDirectory(directory_);
+    if (open_ && writable_) portable_syncDirectory(directory_);
     open_ = false; writable_ = false;
     return true;
 }
@@ -144,13 +142,13 @@ bool file_depot::clearSpace() {
         if (record && ::unlink((directory_ + "/" + name).c_str()) != 0 && errno != ENOENT) ok = false;
     }
     ::closedir(dir);
-    syncDirectory(directory_);
+    portable_syncDirectory(directory_);
     return ok;
 }
 
 bool file_depot::getSpaceInfo() {
-    const std::string where = isDirectory(directory_) ? directory_ : parentOf(directory_);
-    return portable::diskSpace(where, freeBytes_, totalBytes_);
+    const std::string where = portable_isDirectory(directory_) ? directory_ : parentOf(directory_);
+    return portable_diskSpace(where, freeBytes_, totalBytes_);
 }
 
 bool file_depot::trash(unsigned oKey) {
@@ -164,7 +162,7 @@ unsigned file_depot::save(unsigned oKey, unsigned char* pdata, unsigned dsize) {
 
 unsigned file_depot::load(unsigned oKey, unsigned char* pdata, unsigned dsize) {
     if (pdata == nullptr || dsize == 0) return 0;   // libdaas <= 0.24.6 asked to load a TX payload into nullptr
-    const int fd = ::open(pathOf(oKey).c_str(), O_RDONLY | portable::kOpenFlags);
+    const int fd = ::open(pathOf(oKey).c_str(), O_RDONLY | portable_kOpenFlags);
     if (fd < 0) return 0;
     struct stat st;
     if (::fstat(fd, &st) != 0 || static_cast<uint64_t>(st.st_size) > dsize) { ::close(fd); return 0; }
@@ -186,4 +184,3 @@ bool file_depot::hasConfiguration() {
     return true;
 }
 
-}} // namespace daas::persistence

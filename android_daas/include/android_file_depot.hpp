@@ -3,7 +3,7 @@
  *
  * File: android_file_depot.hpp
  *
- * daas::persistence::file_depot: IDepot on the Android file system (the files folder of the app), for DaasAPI::storeConfiguration and
+ * file_depot: IDepot on the Android file system (the files folder of the app), for DaasAPI::storeConfiguration and
  * loadConfiguration (libdaas-refs §16.2, guide §14): one file per record key in a state directory, written to
  * a temporary file, fsync'ed and renamed. stateDirectory() gives the directory of a service or of a user.
  *
@@ -39,6 +39,7 @@
  * 08/11/2026 - plogiacco@sebyone.it - part of android_daas (was gnu-persistence), renamed gnu_file_depot.hpp
  * 14/11/2026 - l.grillo@sebyone.it - daasiot-macos: port to macOS (from gnu_daas of daasiot-gnu 0.2.1)
  * 23/11/2026 - l.grillo@sebyone.it - daasiot-android: port to Android (from macos_daas of daasiot-macos 0.1.0)
+ * 24/11/2026 - l.grillo@sebyone.it - no namespace: the API of android_daas is global, like libdaas
  */
 
 #ifndef _ANDROID_FILE_DEPOT_H__
@@ -51,7 +52,6 @@
 #include <cstdint>
 #include <string>
 
-namespace daas { namespace persistence {
 
 /**
  * @brief State directory of @p app inside @p filesDir, the private files folder of the Android app
@@ -99,6 +99,5 @@ private:
     uint64_t totalBytes_ = 0;
 };
 
-}} // namespace daas::persistence
 
 #endif // _ANDROID_FILE_DEPOT_H__

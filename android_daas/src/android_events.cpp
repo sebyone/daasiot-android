@@ -3,7 +3,7 @@
  *
  * File: android_events.cpp
  *
- * Implementation of daas::sdk::EventRouter.
+ * Implementation of EventRouter.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  * If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -38,6 +38,7 @@
  * 09/11/2026 - plogiacco@sebyone.it - Windows (windows-x86_64-mingw32): eventFd() on a loopback UDP socket pair
  * 14/11/2026 - l.grillo@sebyone.it - daasiot-macos: port to macOS (from gnu_daas of daasiot-gnu 0.2.1)
  * 23/11/2026 - l.grillo@sebyone.it - daasiot-android: port to Android (from macos_daas of daasiot-macos 0.1.0)
+ * 24/11/2026 - l.grillo@sebyone.it - no namespace: the API of android_daas is global, like libdaas
  */
 
 #include "android_events.hpp"
@@ -47,7 +48,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-namespace daas { namespace sdk {
 
 namespace {
 // A non-blocking pipe (as on macOS; eventfd would also do on Linux/Android), readable end in fd (for poll/epoll/select), writable end in wfd.
@@ -161,4 +161,3 @@ void EventRouter::nodeConnectedToNetwork(din_t sid, din_t din) { Event e{EventTy
 void EventRouter::streamInfoReceived(din_t din, stream_type type, uint32_t id) { Event e{EventType::StreamInfoReceived}; e.din = din; e.value1 = static_cast<uint32_t>(type); e.value2 = id; post(e); }
 void EventRouter::attackPanic(din_t origin, din_t from) { Event e{EventType::AttackPanic}; e.din = origin; e.sid = from; post(e); }
 
-}} // namespace daas::sdk

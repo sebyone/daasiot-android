@@ -5,12 +5,31 @@
 All notable changes to daasiot-android. The format is based on [Keep a Changelog](https://keepachangelog.com/), and
 the project uses a `MAJOR.MINOR.PATCH` scheme (`VERSION`).
 
-## [0.2.0] - 2026-11-23
+## [0.2.0] - 2026-11-24
 
-The layout of the other daas-iot wrappers (daasiot-gnu `driver-plg`, daasiot-macos, daasiot-esp32), on libdaas
-**0.24.11**.
+The conventions of the daasiot-&lt;target&gt; repositories (`daasiot-esp32/docs/developers/repo-target-and-tarballs-
+conventions.md`), on libdaas **0.24.12**, built and published by the DaaS Build Console (SDK 6 of daasiot.com).
 
-### Added
+### Changed (24/11/2026)
+- **No namespaces in android_daas**: `Node`, `NodeConfig`, `EventRouter`, `file_depot`, ... are global, like the API
+  of libdaas; the internal helpers are `portable_<name>`. `daas_ble_set_local_sid()` has a weak default.
+- **libdaas 0.24.12** for **three ABIs** (arm64-v8a, armeabi-v7a, x86_64; drivers INET4 and INET6 1.0.1), installed
+  in `android_daas/libdaas/` (fetch_ld 2.0.1); `android_daas/libdaas.cmake` (was `platforms/libdaas/libdaas.cmake`,
+  never committed) links libdaas and the drivers_kit.
+- **android-drivers_sdk renamed android-drivers-sdk**; **blew precompiled by the DaaS Build Console** (`ext/blew/
+  android_<arch>`, blew 1.1.0 with ble-wrapper `4a1ec22`, SHA-256 in the drivers lock): the sources and the prebuilt
+  `libblew.a` of `third_party/blew/` and `android_drivers_sdk.hpp` are removed (the timings of blew in
+  `ble/ble_config.hpp`). `build_drivers_kit.py` builds the drivers_kit of every ABI with the NDK into
+  `android_daas/drivers_kit/` (`libdaas_drv_ble.a`, `libblew.a`, the Java side of blew in `java/`); `template/`.
+- The Gradle module builds the three ABIs and takes the Java of blew from the drivers_kit.
+
+### Added (24/11/2026)
+- `platforms/`: `dist.json`, `scripts/build_aar.py` (the AAR with the NDK, javac and android.jar, no Gradle),
+  `scripts/build_dist.py` (packages `aar`, `drivers-sdk-static`, `src` with MANIFEST.json and SHA256SUMS; never the
+  sources of the specialized drivers), `daas_builder.sh` and `daas-build.yaml` (DaaS Build Console, SDK 6).
+- `tools/docs_pdf/`, the developers guide in the format of the daas documents and its PDF.
+
+### Added (23/11/2026)
 - **android_daas**, the component: an Android library module (AAR, or a module of the build of the app) with the Java
   API `it.sebyone.daas` (`DaasNode` and its `Config`, `DaasListener`, `Ddo`, `NodeStatus`, `Link`, `NodeState`,
   `AcceptRequests`, `DiscoveryState`, `DdoPolicy`, `DaasError`), its JNI binding and the C++17 wrapper

@@ -40,7 +40,7 @@ For each entry (or the ones given with `--only`):
 3. unpacks it as it is into `libdaas/<target>/<linkage>/` and writes `libdaas/INSTALLED.json`.
 
 The tool has no table of targets: any `<target>/<linkage>` of the lock is installed, under that name. The
-`<target>` is the folder `platforms/libdaas/libdaas.cmake` looks for (`DAAS_TARGET`, `android-<ABI>`):
+`<target>` is the folder `android_daas/libdaas.cmake` looks for (`DAAS_TARGET`, `android-<ABI>`):
 `android-arm64-v8a` today; Android packages are `static` only.
 `libdaas/` is gitignored.
 

@@ -37,6 +37,7 @@
  * 09/11/2026 - plogiacco@sebyone.it - creation (port of android_daas to windows-x86_64-mingw32)
  * 14/11/2026 - l.grillo@sebyone.it - daasiot-macos: port to macOS (from gnu_daas of daasiot-gnu 0.2.1)
  * 23/11/2026 - l.grillo@sebyone.it - daasiot-android: port to Android (from macos_daas of daasiot-macos 0.1.0)
+ * 24/11/2026 - l.grillo@sebyone.it - no namespace: the API of android_daas is global, like libdaas
  */
 
 #ifndef _ANDROID_PORTABLE_H__
@@ -51,32 +52,31 @@
 #include <sys/statvfs.h>
 #include <unistd.h>
 
-namespace daas { namespace portable {
 
-constexpr int kOpenFlags = O_CLOEXEC;
+constexpr int portable_kOpenFlags = O_CLOEXEC;
 
-inline bool isDirectory(const std::string& path) {
+inline bool portable_isDirectory(const std::string& path) {
     struct stat st;
     return ::stat(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
 }
 
-inline bool isRegularFile(const std::string& path) {
+inline bool portable_isRegularFile(const std::string& path) {
     struct stat st;
     return ::stat(path.c_str(), &st) == 0 && S_ISREG(st.st_mode);
 }
 
 /** @brief mkdir(); on Windows the mode is not used (the folder inherits the ACL of its parent). */
-inline int makeDirectory(const char* path, unsigned mode) {
+inline int portable_makeDirectory(const char* path, unsigned mode) {
     return ::mkdir(path, static_cast<mode_t>(mode));
 }
 
 /** @brief fsync() of an open file (_commit on Windows). @return 0 on success. */
-inline int syncFile(int fd) {
+inline int portable_syncFile(int fd) {
     return ::fsync(fd);
 }
 
 /** @brief fsync() of a folder, so that a rename in it is durable; nothing to do on Windows (NTFS journals it). */
-inline bool syncDirectory(const std::string& path) {
+inline bool portable_syncDirectory(const std::string& path) {
     const int fd = ::open(path.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
     if (fd < 0) return false;
     const bool ok = ::fsync(fd) == 0;
@@ -85,12 +85,12 @@ inline bool syncDirectory(const std::string& path) {
 }
 
 /** @brief Atomic replacement of @p to by @p from (rename(); on Windows MoveFileEx, which replaces an existing file). */
-inline bool replaceFile(const std::string& from, const std::string& to) {
+inline bool portable_replaceFile(const std::string& from, const std::string& to) {
     return ::rename(from.c_str(), to.c_str()) == 0;
 }
 
 /** @brief Free (for this user) and total bytes of the file system of @p path. */
-inline bool diskSpace(const std::string& path, uint64_t& freeBytes, uint64_t& totalBytes) {
+inline bool portable_diskSpace(const std::string& path, uint64_t& freeBytes, uint64_t& totalBytes) {
     struct statvfs vfs;
     if (::statvfs(path.c_str(), &vfs) != 0) return false;
     freeBytes = static_cast<uint64_t>(vfs.f_bavail) * vfs.f_frsize;
@@ -98,6 +98,5 @@ inline bool diskSpace(const std::string& path, uint64_t& freeBytes, uint64_t& to
     return true;
 }
 
-}} // namespace daas::portable
 
 #endif // _ANDROID_PORTABLE_H__

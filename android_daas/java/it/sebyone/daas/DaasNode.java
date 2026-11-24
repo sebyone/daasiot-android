@@ -3,7 +3,7 @@
  *
  * File: DaasNode.java — android_daas (daasiot-android)
  *
- * The daas node of an Android app: the Java binding of daas::sdk::Node (android_daas.hpp). One node per process
+ * The daas node of an Android app: the Java binding of Node (android_daas.hpp). One node per process
  * (libdaas has one). It is persisted in the files folder of the app (file_depot): the first start applies the
  * Config, the next ones restore the saved configuration (SID, DIN, drivers, map) and apply only its policies.
  * The events of libdaas reach the DaasListener on the service thread of the node ("daas-service"), where the whole

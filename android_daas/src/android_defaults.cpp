@@ -3,7 +3,7 @@
  *
  * File: android_defaults.cpp
  *
- * The hardware version callback of daas::sdk and its default implementation (device tree, uname).
+ * The hardware version callback of android_daas and its default implementation (device tree, uname).
  *
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  * If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -37,6 +37,7 @@
  * 09/11/2026 - plogiacco@sebyone.it - Windows (windows-x86_64-mingw32): "WIN-<arch>"
  * 14/11/2026 - l.grillo@sebyone.it - daasiot-macos: port to macOS (from gnu_daas of daasiot-gnu 0.2.1)
  * 23/11/2026 - l.grillo@sebyone.it - daasiot-android: port to Android (from macos_daas of daasiot-macos 0.1.0)
+ * 24/11/2026 - l.grillo@sebyone.it - no namespace: the API of android_daas is global, like libdaas
  */
 
 #include "android_defaults.hpp"
@@ -46,7 +47,6 @@
 
 #include <sys/utsname.h>
 
-namespace daas { namespace sdk {
 
 namespace {
 
@@ -91,4 +91,3 @@ std::string hardwareVersion() {
     return version.substr(0, kHardwareVersionMax);
 }
 
-}} // namespace daas::sdk

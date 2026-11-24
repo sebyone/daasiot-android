@@ -3,7 +3,7 @@
  *
  * File: android_daas_jni.cpp — android_daas (daasiot-android)
  *
- * JNI binding of daas::sdk::Node (android_daas.hpp) for the Java class it.sebyone.daas.DaasNode: one node per
+ * JNI binding of Node (android_daas.hpp) for the Java class it.sebyone.daas.DaasNode: one node per
  * process (libdaas has one), its file_depot in the files folder of the app, the events dispatched to the Java side
  * from Node::service() (the service thread of DaasNode), the DDOs pulled into it.sebyone.daas.Ddo, the status into
  * it.sebyone.daas.NodeStatus, the logs of libdaas (stdout/stderr) into logcat.
@@ -17,6 +17,7 @@
  *
  * Changes:
  *   2026-11-23  Lorenzo Grillo  creation (from the JNI bridge of the thermobooster app)
+ *   2026-11-24  Lorenzo Grillo  android_daas without namespace
  */
 
 #include "android_daas.hpp"
@@ -36,10 +37,6 @@
 #define LOG_TAG "android_daas"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
-using daas::sdk::Event;
-using daas::sdk::EventType;
-using daas::sdk::Node;
-using daas::sdk::NodeConfig;
 
 namespace {
 
@@ -52,7 +49,7 @@ jmethodID g_ddoInit = nullptr;       // Ddo(long, long, int, long, byte[])
 jmethodID g_statusInit = nullptr;    // NodeStatus(long, int, int, String, int, long, long, int, int, long, boolean)
 
 std::mutex g_mutex;                  // guards g_node / g_depot against create/destroy
-std::unique_ptr<daas::persistence::file_depot> g_depot;
+std::unique_ptr<file_depot> g_depot;
 std::unique_ptr<Node> g_node;
 
 // Threads of libdaas that reach Java (events not queued) are attached once and detached when they exit.
@@ -211,8 +208,8 @@ Java_it_sebyone_daas_DaasNode_nativeCreate(JNIEnv* e, jclass, jstring stateDir, 
     const std::string hw = JStr(e, hardware).str();
 
     const std::string dir = JStr(e, stateDir).str();
-    if (!daas::persistence::makeDirectories(dir)) { LOGE("cannot create the state folder %s", dir.c_str()); return ERROR_CANNOT_INITIALIZE; }
-    g_depot = std::make_unique<daas::persistence::file_depot>(dir);
+    if (!makeDirectories(dir)) { LOGE("cannot create the state folder %s", dir.c_str()); return ERROR_CANNOT_INITIALIZE; }
+    g_depot = std::make_unique<file_depot>(dir);
     g_node = std::make_unique<Node>(std::move(config), g_depot.get(), hw.empty() ? nullptr : hw.c_str());
 
     static const EventType kTypes[] = {EventType::DinAccepted, EventType::DdoReceived, EventType::FrisbeeReceived,
@@ -373,7 +370,7 @@ Java_it_sebyone_daas_DaasNode_nativePush(JNIEnv* e, jclass, jlong din, jint type
 extern "C" JNIEXPORT jobject JNICALL
 Java_it_sebyone_daas_DaasNode_nativePull(JNIEnv* e, jclass, jlong din) {
     NODE_OR(nullptr)
-    daas::sdk::InboxRecord record;
+    InboxRecord record;
     if (node.pull(static_cast<din_t>(din), record) != ERROR_NONE) return nullptr;
     jbyteArray payload = e->NewByteArray(static_cast<jsize>(record.payload.size()));
     if (!payload) return nullptr;
